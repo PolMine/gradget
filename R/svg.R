@@ -20,14 +20,14 @@ setClass(
 
 
 
-#' @rdname asSvg
+#' @rdname as.svg
 setMethod("print", "svg", function(x) saveXML(x@xml))
 
-#' @rdname asSvg
+#' @rdname as.svg
 setMethod("as.character", "svg", function(x) saveXML(x@xml))
 
 #' @importFrom htmltools HTML html_print
-#' @rdname asSvg
+#' @rdname as.svg
 setMethod("show", "svg", function(object){
   docString <- saveXML(object@xml)
   docHtml <- HTML(docString)
@@ -35,7 +35,7 @@ setMethod("show", "svg", function(object){
 })
 
 #' @exportMethod browse
-#' @rdname asSvg
+#' @rdname as.svg
 setMethod("browse", "svg", function(object){
   tmpFile <- tempfile(fileext=".html")
   docString <- saveXML(object@xml)
@@ -82,7 +82,7 @@ setMethod("trim", "svg", function(object, community=NULL, neighbors=NULL){
   }
   if (!is.null(neighbors)){
     trimmedIgraph <- trim(asIgraph(object), neighbors=neighbors)
-    trimmedObject <- asSvg(
+    trimmedObject <- as.svg(
       trimmedIgraph,
       neighbors=neighbors
       )

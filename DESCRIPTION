@@ -1,8 +1,8 @@
 Package: polmineR.graph
 Type: Package
 Title: polmineR.graph
-Version: 0.1.1
-Date: 2014-11-29
+Version: 0.1.2
+Date: 2015-01-07
 Author: Andreas Blaette
 Maintainer: Andreas Blaette <andreas.blaette@uni-due.de>
 Depends:
@@ -16,7 +16,8 @@ Imports:
     htmltools,
     pander
 Suggests:
-    knitr
+    knitr,
+    three
 VignetteBuilder: knitr
 LazyData: yes
 Description: Plugin for the polmineR-package

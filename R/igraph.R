@@ -18,20 +18,24 @@ setOldClass("igraph")
   return(igraphObject)
 }
 
-.makeCoords <- function(igraphObject, layout){
+.makeCoords <- function(igraphObject, layout, dim){
+  if (!dim %in% c(2,3)) warning("numer of dimensions is not valid")
   if (layout=="fruchterman.reingold"){
-    coords <- layout.fruchterman.reingold(igraphObject, dim=2)    
+    coords <- layout.fruchterman.reingold(igraphObject, dim=dim)    
   } else if (layout=="kamada.kawai"){
-    coords <- layout.kamada.kawai(igraphObject, dim=2)
+    coords <- layout.kamada.kawai(igraphObject, dim=dim)
   } else if (layout=="spring"){
-    coords <- layout.spring(igraphObject, dim=2)
+    coords <- layout.spring(igraphObject, dim=dim)
   } else if (layout=="lgl"){
-    coords <- layout.lgl(igraphObject, dim=2)
+    coords <- layout.lgl(igraphObject, dim=dim)
   } else if (layout=="graphopt"){
-    coords <- layout.graphopt(igraphObject, dim=2)
+    coords <- layout.graphopt(igraphObject, dim=dim)
   }
   V(igraphObject)$x <- coords[,1]
   V(igraphObject)$y <- coords[,2]
+  if (dim == 3){
+    V(igraphObject)$z <- coords[,3]
+  }
   return(igraphObject)
 }
 
@@ -179,14 +183,14 @@ setOldClass("igraph")
 #' bt17merkelCollTrimmed <- trim(bt17merkelColl, cutoff=list(ll=10.83, collocateWindowFreq=2))
 #' iMerkel <- asIgraph(bt17merkelCollTrimmed)
 #' iMerkel <- enrich(iMerkel, community=list(method="fastgreedy", weights=FALSE))
-#' merkelSvg <- asSvg(iMerkel, width=1000, height=1000)
+#' merkelSvg <- as.svg(iMerkel, width=1000, height=1000)
 #' show(merkelSvg)
 #' }
-#' @rdname asSvg
-#' @aliases asSvg asSvg,collocations-method browse,svg-method browse plot,igraph-method plot,svg-method
-#' @exportMethod asSvg
+#' @rdname as.svg
+#' @aliases as.svg as.svg,collocations-method browse,svg-method browse plot,igraph-method plot,svg-method
+#' @exportMethod as.svg
 setMethod(
-  "asSvg", "igraph",
+  "as.svg", "igraph",
   function(
     object, layout="kamada.kawai", width=400, height=400, margin=50,
     fontSize=8, textOffset=5, edgeAttributes="ll", verticeAttributes="tf",
@@ -290,9 +294,9 @@ setMethod(
 }
 
 
-setMethod("enrich", "igraph", function(object, layout=NULL, community=NULL){
+setMethod("enrich", "igraph", function(object, layout=NULL, dim=2, community=NULL){
   if (!is.null(layout)){
-    object <- .makeCoords(object, layout=layout)
+    object <- .makeCoords(object, layout=layout, dim=dim)
   }
   if (!is.null(community)){
     object <- .communityDetection(object, method=community[["method"]], weights=community[["weights"]])
@@ -326,7 +330,7 @@ setMethod("trim", "igraph", function(object, size=NULL, communityNo=NULL, neighb
 })
 
 setMethod("plot", "igraph", function(x, y=NULL, ...){
-  toBePlotted <- asSvg(x, ...)
+  toBePlotted <- as.svg(x, ...)
   plot(toBePlotted)
 })
 

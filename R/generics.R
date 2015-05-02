@@ -1,4 +1,4 @@
-setGeneric("asSvg", function(object, ...){UseMethod("asSvg")})
+setGeneric("as.svg", function(object, ...){UseMethod("as.svg")})
 setGeneric("asIgraph", function(x, ...){UseMethod("asIgraph")})
 setGeneric("browse", function(object, ...){UseMethod("browse")})
 

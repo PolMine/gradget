@@ -66,27 +66,27 @@ setMethod("asIgraph", "collocations", function(x, edgeAttributes="ll", verticeAt
 #' \dontrun{
 #' bt17merkel <- partition("PLPRTXT", list(text_lp="17", text_speaker="Angela Merkel", text_type="speech"), tf="word")
 #' bt17merkelColl <- collocations(bt17merkel, pAttribute="word", mc=TRUE)
-#' bt17merkelCollTrimmed <- trim(bt17merkelColl, cutoff=list(ll=50))
+#' bt17merkelCollTrimmed <- trim(bt17merkelColl, cutoff=list(ll=60))
 #' iMerkel <- asIgraph(bt17merkelCollTrimmed)
 #' iMerkelComm <- enrich(iMerkel, community=list(method="fastgreedy", weights=FALSE))
-#' merkelSvg <- asSvg(iMerkelComm, width=1000, height=1000)
+#' merkelSvg <- as.svg(iMerkelComm, width=1000, height=1000)
 #' }
-#' @rdname asSvg
-#' @aliases asSvg asSvg,collocations-method plot,collocations-method
-#' @exportMethod asSvg
+#' @rdname as.svg
+#' @aliases as.svg as.svg,collocations-method plot,collocations-method
+#' @exportMethod as.svg
 setMethod(
-  "asSvg", "collocations",
+  "as.svg", "collocations",
   function(
     object, layout="kamada.kawai", verbose=TRUE, ...
   ){
     if (verbose == TRUE) message("... creating igraph object (step 1)")
     igraphObject <- asIgraph(object, ...)
     if (verbose == TRUE) message("... creating svg object (step 2)")
-    svgObject <- asSvg(igraphObject, verbose=verbose, ...)
+    svgObject <- as.svg(igraphObject, verbose=verbose, ...)
     svgObject
   })
 
 setMethod("plot", "collocations", function(x, y=NULL, ...){
-  toBePlotted <- asSvg(x)
+  toBePlotted <- as.svg(x)
   plot(toBePlotted)
 })
