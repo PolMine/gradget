@@ -14,10 +14,11 @@ Depends:
 Imports:
     parallel,
     htmltools,
-    pander
-Suggests:
-    knitr,
+    pander,
+    rjson,
     three
+Suggests:
+    knitr
 VignetteBuilder: knitr
 LazyData: yes
 Description: Plugin for the polmineR-package
