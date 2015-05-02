@@ -25,6 +25,7 @@ Description: Plugin for the polmineR-package
     shiny
 License: CC BY-NC-SA 3.0 | file LICENSE
 Collate:
+    'as.three-method.R'
     'generics.R'
     'igraph.R'
     'collocations.R'
