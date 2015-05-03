@@ -41,10 +41,10 @@ setMethod(
     object, type="base", bgColor="0xffffff", nodeSize=5,
     edgeColor="0x000000", edgeWidth=5,
     fontSize=20, fontColor="0x000000", fontOffset=c(x=5, y=5, z=5),
-    jsUrlPrefix=NULL
+    jsUrlPrefix=NULL, adjust=list()
   ){
     if (is.null(V(object)$z)) warning("coordinates for threedimensional display are not available")
-    threeObject <- three(type, bgColor, jsUrlPrefix)
+    threeObject <- three(type, bgColor, jsUrlPrefix, adjust)
     if (is.null(V(object)$color)){
       color <- "0xcccccc"
     } else {
