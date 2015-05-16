@@ -35,6 +35,7 @@ setGeneric("as.three", function(object, ...) standardGeneric("as.three"))
 #' @rdname as.three
 #' @exportMethod as.three
 #' @importFrom rjson toJSON
+#' @importFrom three three points light text
 setMethod(
   "as.three", "igraph",
   function(
@@ -100,6 +101,21 @@ setMethod(
     threeObject
   })
 
+
+#' @rdname as.three
+#' @exportMethod as.three
+setMethod(
+  "as.three", "list", function(
+    object, type="base", bgColor="0xffffff", nodeSize=5, edgeColor="0x000000", edgeWidth=5,
+    fontSize=20, fontColor="0x000000", fontOffset=c(x=5, y=5, z=5),
+    jsUrlPrefix=NULL, adjust=list()){
+    lapply(object, function(x){
+      as.three(x, type=type, bgColor=bgColor, nodeSize=nodeSize, edgeColor=edgeColor, edgeWidth=edgeWidth,
+               fontSize=fontSize, fontColor=fontColor, fontOffset=fontOffset,
+               jsUrlPrefix=jsUrlPrefix, adjust=adjust
+      )
+    })
+  })
 
 
 
