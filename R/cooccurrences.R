@@ -6,31 +6,32 @@
 NULL
 
 
-#' Turn collocations object into igraph
+#' Turn cooccurrences object into igraph
 #' 
 #' @param x an object
 #' @param edgeAttributes attributes of edges to maintain
 #' @param verticeAttributes attributes of vertices to maintain
 #' @param as.undirected logical, whether to turn object into directed graph
-#' @importClassesFrom polmineR collocations
 #' @exportMethod asIgraph
 #' @rdname asIgraph
-#' @aliases asIgraph asIgraph,collocations-method asIgraph,keynessCollocations-method
-setMethod("asIgraph", "collocations", function(x, edgeAttributes="ll", verticeAttributes="tf", as.undirected=TRUE){
+setMethod("asIgraph", "cooccurrences", function(x, edgeAttributes="ll", verticeAttributes=NULL, as.undirected=TRUE){
   if (!all(edgeAttributes %in% colnames(x@stat))) warning("edgeAttribute supplied is not available")
-  tab <- x@stat
-  for (what in c("node", "collocate")){
-     tab[,what] <- iconv(tab[,what], from=x@encoding, to="UTF-8")  
-  }
+  tab <- as.data.frame(x)
+  aColsStr <- paste("a_", x@pAttribute, sep="")
+  bColsStr <- paste("b_", x@pAttribute, sep="")
+  tab[["node"]] <- apply(tab, 1, function(x) paste(x[aColsStr], collapse="//"))
+  tab[["collocate"]] <- apply(tab, 1, function(x) paste(x[bColsStr], collapse="//"))
+#   for (what in c("node", "collocate")){
+#      tab[,what] <- iconv(tab[,what], from=x@encoding, to="UTF-8")  
+#   }
   g <- graph.data.frame(tab[,c("node","collocate", edgeAttributes)])
-  if ("tf" %in% verticeAttributes){
-    tf <- get(x@partition, ".GlobalEnv")@tf[[x@pAttribute]] # this will be a data.frame
-    tfVector <- setNames(
-      tf[,"tf"],
-      iconv(rownames(tf), from=x@encoding, to="UTF-8")
-    )
-    V(g)$tfAbs <- tfVector[V(g)]
-    V(g)$tfRel <- round((tfVector[V(g)]/get(x@partition, ".GlobalEnv")@size)*100000, 3)
+  if ("count" %in% verticeAttributes){
+    TF <- get(x@partition, ".GlobalEnv")@stat # this will be a data.frame
+    TF[, key := apply(TF, 1, function(row) paste(row[x@pAttribute], collapse="//"))]
+    setkey(TF, key)
+    tfVector <- TF[names(V(g))][["count"]]
+    V(g)$count <- tfVector
+    V(g)$freq <- round((tfVector/get(x@partition, ".GlobalEnv")@size)*100000, 3)
   }
   if (as.undirected == TRUE) g <- trim(g, as.undirected=TRUE)
   g <- delete.vertices(g, V(g)[name == "\u0084"])
@@ -41,7 +42,7 @@ setMethod("asIgraph", "collocations", function(x, edgeAttributes="ll", verticeAt
 
 
 
-#' Make svg for collocations graph
+#' Make svg for cooccurrences graph
 #' 
 #' A story to be told
 #' 
@@ -64,18 +65,20 @@ setMethod("asIgraph", "collocations", function(x, edgeAttributes="ll", verticeAt
 #' @importFrom htmltools html_print HTML
 #' @examples
 #' \dontrun{
-#' bt17merkel <- partition("PLPRTXT", list(text_lp="17", text_speaker="Angela Merkel", text_type="speech"), tf="word")
-#' bt17merkelColl <- collocations(bt17merkel, pAttribute="word", mc=TRUE)
+#' bt17merkel <- partition(
+#'   "PLPRTXT", list(text_lp="17", text_speaker="Angela Merkel", text_type="speech"),
+#'   tf="word"
+#'   )
+#' bt17merkelColl <- cooccurrences(bt17merkel, pAttribute="word", mc=TRUE)
 #' bt17merkelCollTrimmed <- trim(bt17merkelColl, cutoff=list(ll=60))
 #' iMerkel <- asIgraph(bt17merkelCollTrimmed)
 #' iMerkelComm <- enrich(iMerkel, community=list(method="fastgreedy", weights=FALSE))
 #' merkelSvg <- as.svg(iMerkelComm, width=1000, height=1000)
 #' }
 #' @rdname as.svg
-#' @aliases as.svg as.svg,collocations-method plot,collocations-method
 #' @exportMethod as.svg
 setMethod(
-  "as.svg", "collocations",
+  "as.svg", "cooccurrences",
   function(
     object, layout="kamada.kawai", verbose=TRUE, ...
   ){
@@ -86,7 +89,7 @@ setMethod(
     svgObject
   })
 
-setMethod("plot", "collocations", function(x, y=NULL, ...){
+setMethod("plot", "cooccurrences", function(x, y=NULL, ...){
   toBePlotted <- as.svg(x)
   plot(toBePlotted)
 })

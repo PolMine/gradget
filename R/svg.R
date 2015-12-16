@@ -100,8 +100,8 @@ setMethod("asIgraph", "svg", function(x, as.undirected=TRUE){
   nodeTab <- do.call(rbind, xpathApply(x@xml, "//circle", xmlAttrs))
   rownames(nodeTab) <- nodeTab[,"token"]
   id2token <- setNames(nodeTab[,"token"], nodeTab[,"nodeId"])
-#  tfAbs <- setNames(as.integer(nodeTab[,"tfAbs"]), nodeTab[,"token"])
-#  tfRel <- setNames(as.integer(nodeTab[,"tfRel"]), nodeTab[,"token"])
+#  count <- setNames(as.integer(nodeTab[,"count"]), nodeTab[,"token"])
+#  freq <- setNames(as.integer(nodeTab[,"tfRel"]), nodeTab[,"token"])
 #  if ("community" %in% colnames(nodeTab)) community <- setNames(as.integer(nodeTab[,"community"]), nodeTab[,"token"])
 #  color <- setNames(nodeTab[,"fill"], nodeTab[,"token"])
   edgesPrep <- xpathSApply(
@@ -119,8 +119,8 @@ setMethod("asIgraph", "svg", function(x, as.undirected=TRUE){
   edgesTab <- matrix(unlist(edgesPrep), ncol=3, byrow=TRUE)
   edgesDf <- data.frame(node=edgesTab[,1], collocate=edgesTab[,2], ll=as.numeric(edgesTab[,3]))
   g <- graph.data.frame(edgesDf)
-  V(g)$tfAbs <- as.integer(nodeTab[vertex.attributes(g)$name, "tfAbs"])
-  V(g)$tfRel <- as.numeric(nodeTab[vertex.attributes(g)$name, "tfRel"])
+  V(g)$count <- as.integer(nodeTab[vertex.attributes(g)$name, "count"])
+  V(g)$freq <- as.numeric(nodeTab[vertex.attributes(g)$name, "freq"])
   V(g)$community <- as.numeric(nodeTab[vertex.attributes(g)$name, "community"])
   V(g)$color <- nodeTab[vertex.attributes(g)$name, "fill"]
   if (as.undirected == TRUE) g <- trim(g, as.undirected=TRUE)

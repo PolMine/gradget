@@ -1,8 +1,8 @@
 Package: polmineR.graph
 Type: Package
 Title: polmineR.graph
-Version: 0.1.2
-Date: 2015-01-07
+Version: 0.1.4
+Date: 2015-12-15
 Author: Andreas Blaette
 Maintainer: Andreas Blaette <andreas.blaette@uni-due.de>
 Depends:
@@ -25,10 +25,10 @@ Description: Plugin for the polmineR-package
     shiny
 License: CC BY-NC-SA 3.0 | file LICENSE
 Collate:
-    'as.three-method.R'
+    'as.three_method.R'
     'generics.R'
     'igraph.R'
-    'collocations.R'
-    'keynessCollocations.R'
-    'polmineR.graph-package.R'
+    'cooccurrences.R'
+    'polmineR.graph_package.R'
     'svg.R'
+RoxygenNote: 5.0.1

@@ -43,7 +43,7 @@ setOldClass("igraph")
 .circleNodes <- function(igraphObject, radius=list(minSize=3, tf=TRUE), returnXML=TRUE, pandocTab=TRUE){
   if (is.null(V(igraphObject)$color)) V(igraphObject)$color <- "blue"
   if (radius[["tf"]] == TRUE){
-    rad <- radius[["minSize"]]+sqrt(sqrt(V(igraphObject)$tfAbs/3.14159))
+    rad <- radius[["minSize"]]+sqrt(sqrt(V(igraphObject)$count/3.14159))
   } else {
     rad <- rep(radius[["minSize"]], times=length(V(igraphObject)))
   }
@@ -57,7 +57,7 @@ setOldClass("igraph")
     if (pandocTab == TRUE) {
       tab <- data.frame(
         c("tf/abs", "tf/rel", "community"),
-        c(V(igraphObject)[i]$tfAbs, V(igraphObject)[i]$tfRel, community)
+        c(V(igraphObject)[i]$count, V(igraphObject)[i]$freq, community)
       )
       colnames(tab) <- c("token", V(igraphObject)[i]$name)
       tooltipTab <- pandoc.table.return(tab, justify=c("left", "left"))
@@ -65,8 +65,8 @@ setOldClass("igraph")
     } else {
       tooltipTab <- paste(
         V(igraphObject)[i]$name, "\n",
-        "tf(abs): ", as.character(V(igraphObject)[i]$tfAbs), "\n",
-        "tf(rel): ", as.character(V(igraphObject)[i]$tfRel), "\n",
+        "count: ", as.character(V(igraphObject)[i]$count), "\n",
+        "freq: ", as.character(V(igraphObject)[i]$tfRel), "\n",
         "community: ", community,
         sep="")
     }
@@ -80,8 +80,8 @@ setOldClass("igraph")
         cy=as.character(V(igraphObject)[i]$y),
         nodeId=as.character(i),
         token=V(igraphObject)[i]$name,
-        tfAbs=as.character(V(igraphObject)[i]$tfAbs),
-        tfRel=as.character(V(igraphObject)[i]$tfRel),
+        count=as.character(V(igraphObject)[i]$tfAbs),
+        freq=as.character(V(igraphObject)[i]$tfRel),
         community=community
       )
     )
@@ -178,9 +178,9 @@ setOldClass("igraph")
 #' @examples
 #' \dontrun{
 #' bt17merkel <- partition("PLPRTXT", list(text_lp="17", text_speaker="Angela Merkel", text_type="speech"), tf="word")
+#' save(bt17merkel, file="/Users/blaette/Lab/polmineR.data/partitionDir/bt17merkel.RData")
 #' bt17merkelColl <- collocations(bt17merkel, pAttribute="word", mc=TRUE)
-#' bt17merkelCollTrimmed <- trim(bt17merkelColl, cutoff=list(ll=50))
-#' bt17merkelCollTrimmed <- trim(bt17merkelColl, cutoff=list(ll=10.83, collocateWindowFreq=2))
+#' bt17merkelCollTrimmed <- trim(bt17merkelColl, cutoff=list(ll=50, collocateWindowFreq=2))
 #' iMerkel <- asIgraph(bt17merkelCollTrimmed)
 #' iMerkel <- enrich(iMerkel, community=list(method="fastgreedy", weights=FALSE))
 #' merkelSvg <- as.svg(iMerkel, width=1000, height=1000)
@@ -269,16 +269,19 @@ setMethod(
     if (weights==TRUE){
       fgComm <- fastgreedy.community(igraphObject, weights=E(igraphObject)$ll)  
     } else if (weights==FALSE){
-      fgComm <- fastgreedy.community(igraphObject)
+#      fgComm <- fastgreedy.community(igraphObject)
+      fgComm <- cluster_fast_greedy(igraphObject)
     }
-    mem <- community.to.membership(
-      igraphObject,
-      fgComm$merges,
-      steps=which.max(fgComm$modularity)-1
-    )
-    V(igraphObject)$community <- mem$membership + 1
+#     mem <- community.to.membership(
+#       igraphObject,
+#       fgComm$merges,
+#       steps=which.max(fgComm$modularity)-1
+#     )
+#    V(igraphObject)$community <- mem$membership + 1
+    mem <- membership(fgComm)
+    V(igraphObject)$community <- mem
     colors <- rep(colors, times=ceiling(max(V(igraphObject)$community)/length(colors)))
-    V(igraphObject)$color <- colors[mem$membership + 1]
+    V(igraphObject)$color <- colors[mem + 1]
   } else if (method == "edge.betweenness"){
     if (weights == TRUE){
       ebc <- edge.betweenness.community(
