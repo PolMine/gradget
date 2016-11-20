@@ -144,8 +144,8 @@ function render(){
 		console.log(posY);
 		// console.log("mouse.x ", mouse.x);
 		// console.log(window.innerHeight);
-		
-		var vector = new THREE.Vector3( posX , coordY, 1 ).unproject( camera );
+		var vector = new THREE.Vector3( window.mouseX - calibrationX, window.mouseY, 1 ).unproject( camera );
+		// var vector = new THREE.Vector3( posX , coordY, 1 ).unproject( camera );
 		raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
 		var intersects = raycaster.intersectObjects( scene.children );
 		

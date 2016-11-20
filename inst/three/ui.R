@@ -11,43 +11,48 @@ shinyUI(
   
   
   
-  navbarPage(
+  fluidPage(
     
     # titlePanel("Hello Shiny!"),
     
-    theme = shinyThemeToUse,
+#    theme = shinyThemeToUse,
     
-    title = "polmineR",
+#    title = "polmineR",
     
-    tabPanel(
+#    tabPanel(
       
-      "graph",
+#      "graph",
       
       includeScript("/Library/Frameworks/R.framework/Versions/3.2/Resources/library/three/js/three.min.js"),
       includeScript("/Library/Frameworks/R.framework/Versions/3.2/Resources/library/three/js/TrackballControls.js"),
       includeScript("/Users/blaette/Lab/tmp/three/foo.json"),
       includeScript("/Users/blaette/Lab/github/polmineR.graph/inst/three/www/foo.js"),
       
-      sidebarLayout(
-        sidebarPanel(
+      fluidRow(
+        column(2,
           
           graphUiInput(),
           selectInput("three", "three", choices = threeObjects, selected = threeObjects[1]),
           textInput("foo", "foo", value = "")
           
         ),
-        mainPanel(
-          
-                     div(
-                       id = "content",
-                       uiOutput('three')
-                     )
+        column(10,
+          div(
+            id = "content",
+            uiOutput('three')
+          )
         )
       ),
       tags$script("init()"), # happens on load
-      tags$script("animate()")
+      tags$script("animate()"),
       
-    ),
+      
+      # for making progress
+      tags$script('var calibrationX = 5; Shiny.addCustomMessageHandler("passCallibrationX", function(calibrateX) {calibrationX = calibrateX; console.log(calibrationX);});'),
+      tags$script('var calibrationY = 5; Shiny.addCustomMessageHandler("passCallibrationY", function(calibrateY) {calibrationY = calibrateY; console.log(calibrationY);});'),
+      
+      
+#    ),
   
     useShinyjs(debug = TRUE),
     extendShinyjs(script = "/Users/blaette/Lab/github/polmineR.graph/inst/three/www/shinyjs.js")
