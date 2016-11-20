@@ -19,7 +19,7 @@ shinyUI(
     
 #    title = "polmineR",
     
-#    tabPanel(
+#    sidebarLayout(
       
 #      "graph",
       
@@ -28,15 +28,17 @@ shinyUI(
       includeScript("/Users/blaette/Lab/tmp/three/foo.json"),
       includeScript("/Users/blaette/Lab/github/polmineR.graph/inst/three/www/foo.js"),
       
-      fluidRow(
-        column(2,
+      sidebarLayout(
+        sidebarPanel = sidebarPanel(
+          # 2,
           
           graphUiInput(),
           selectInput("three", "three", choices = threeObjects, selected = threeObjects[1]),
           textInput("foo", "foo", value = "")
           
         ),
-        column(10,
+        mainPanel = mainPanel(
+          # 10,
           div(
             id = "content",
             uiOutput('three')

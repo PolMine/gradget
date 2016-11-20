@@ -10,7 +10,7 @@ graphUiInput <- function(){
     go = actionButton("graph_go", label="", icon = icon("play", lib = "glyphicon")),
     br(),
     br(),
-    callibration_x = sliderInput("graph_callibration_x", "x callibration", min = 0, max = 1, value = 0.4, step = 0.01),
+    callibration_x = sliderInput("graph_callibration_x", "x callibration", min = 0, max = 1, value = 0.68, step = 0.01),
     callibration_y = sliderInput("graph_callibration_y", "y callibration", min = 0, max = 1, value = 0.4, step = 0.01),
     object = selectInput("graph_object", label = "object", choices = getObjects("cooccurrences", envir = .GlobalEnv)),
     max_rank = sliderInput("graph_max_rank", label = "max. rank", min = 10, max = 1000, value = 200),
