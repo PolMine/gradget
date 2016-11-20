@@ -6,10 +6,6 @@ window.mouseY = 100;
 var INTERSECTED, MATCH;
 var radius = 100, theta = 0;
 
-var mouse = {x: 100, y: 100};
-
-var rect = document.getElementById("graph").getBoundingClientRect();
-
 
 function init(){
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
@@ -102,9 +98,7 @@ function firstMouseMove ( event ) {
 	window.mouseX = ( event.clientX / window.innerWidth ) * 2 - 1;
 	window.mouseY = - ( event.clientY / window.innerHeight ) * 2 + 1;
   
-  mouse.x = event.clientX;
-  mouse.y = event.clientY;
-  
+
   render();
   
 }
@@ -121,34 +115,12 @@ function render(){
 		camera.lookAt( scene.position );
     scene.getObjectByName( "pointLight" ).position.copy( camera.position );
 		
-		// explanation: where does 0.4 come from ? 195 / 975 * 2, assuming width of 1170 and a grid consisting of 12 rows;
-		
-			// event.preventDefault();
 
-		// var mouseX = ( window.clientX / window.innerWidth ) * 2 - 1;
-		// var	mouseY = - ( window.clientY / window.innerHeight ) * 2 + 1;
-
-		
-		var rect = document.getElementById("graph").getBoundingClientRect();
-		
-		// coordX identical with mouse.x if window is maximized
-		var coordX = window.mouseX *  (screen.width / 2) + (screen.width / 2);
-		var centerX = rect.left + rect.width / 2;
-		var posX = (coordX - centerX) / centerX * 2;
-
-		// var coordY = window.innerHeight / 2 - window.mouseY * (window.innerHeight / 2);
-		
-		var coordY = (- window.mouseY + 1) / 2 * window.innerHeight;
-		var posY = (((rect.bottom - rect.top) / 2) - (mouse.y - rect.top)) / ((rect.bottom - rect.top) / 2);
-		
-		console.log(posY);
-		// console.log("mouse.x ", mouse.x);
-		// console.log(window.innerHeight);
 		var vector = new THREE.Vector3(
 		  window.mouseX - calibrationX,
 		  window.mouseY - calibrationY, 1
 		  ).unproject( camera );
-		// var vector = new THREE.Vector3( posX , coordY, 1 ).unproject( camera );
+		  
 		raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
 		var intersects = raycaster.intersectObjects( scene.children );
 		
