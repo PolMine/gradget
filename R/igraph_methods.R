@@ -1,5 +1,7 @@
 #' @include generics.R
 #' @import RColorBrewer
+#' @importFrom igraph layout.fruchterman.reingold layout.kamada.kawai layout.spring layout.lgl layout.graphopt edge.betweenness.community is.directed
+#' @importFrom XML addChildren newXMLTextNode newXMLNode xmlTreeParse
 NULL
 
 
@@ -43,7 +45,12 @@ setOldClass("igraph")
 .circleNodes <- function(igraphObject, radius=list(minSize=3, tf=TRUE), returnXML=TRUE, pandocTab=TRUE){
   if (is.null(V(igraphObject)$color)) V(igraphObject)$color <- "blue"
   if (radius[["tf"]] == TRUE){
-    rad <- radius[["minSize"]]+sqrt(sqrt(V(igraphObject)$count/3.14159))
+    if (!is.null(V(igraphObject)$count)){
+      rad <- radius[["minSize"]] + sqrt(sqrt(V(igraphObject)$count/3.14159))  
+    } else {
+      rad <- rep(radius[["minSize"]], times=length(V(igraphObject)))
+    }
+    
   } else {
     rad <- rep(radius[["minSize"]], times=length(V(igraphObject)))
   }
@@ -108,12 +115,15 @@ setOldClass("igraph")
     linkNode <- newXMLNode(
       "a",
       attrs=c(
-        "xlink:href"=paste(
-          "http://localhost/cgi-bin/R/graph2kwic?",
-          "partition=", attr(igraphObject, "partition"), "__node=", edgelistString[i,1],
-          "__collocate=", edgelistString[i,2], sep="")
+        onClick=paste("edgeClick(x='", edgelistString[i,1], "', y='", edgelistString[i,2], "')", sep="")
       ),
-      suppressNamespaceWarning=TRUE
+#      attrs=c(
+#        "xlink:href"=paste(
+#          "http://localhost/cgi-bin/R/graph2kwic?",
+#          "partition=", attr(igraphObject, "partition"), "__node=", edgelistString[i,1],
+#          "__collocate=", edgelistString[i,2], sep="")
+#      ),
+      suppressNamespaceWarning = TRUE
     )
     llValues <- as.character(round(unlist(E(igraphObject)$ll[i]), 2))
     newLineNode <- newXMLNode(
@@ -148,7 +158,8 @@ setOldClass("igraph")
   .textNode <- function(i){
     linkNode <- newXMLNode(
       "a",
-      attrs=c("xlink:href"=paste("http://localhost/cgi-bin/R/graph2kwic?", "partition=", attr(igraphObject, "partition"), "__node=", V(igraphObject)[i]$name, sep="")),
+      # attrs=c("xlink:href"=paste("http://localhost/cgi-bin/R/graph2kwic?", "partition=", attr(igraphObject, "partition"), "__node=", V(igraphObject)[i]$name, sep="")),
+      attrs=c("onClick"=paste("nodeClick(x='", V(igraphObject)[i]$name, "')", sep="")),
       suppressNamespaceWarning=TRUE
     )
     textNode <- newXMLNode(
@@ -156,8 +167,8 @@ setOldClass("igraph")
       attrs=c(
         fill="red",
         style=paste("font-size:", as.character(fontSize), "px;font-family:sans-serif", sep=""),
-        x=V(igraphObject)[i]$x+textOffset,
-        y=V(igraphObject)[i]$y-textOffset,
+        x=V(igraphObject)[i]$x + textOffset,
+        y=V(igraphObject)[i]$y - textOffset,
         nodeId=as.character(i)
       )
     )

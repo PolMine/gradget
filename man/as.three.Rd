@@ -7,6 +7,8 @@
 \alias{as.three,list-method}
 \title{generate 3d graph}
 \usage{
+as.three(object, ...)
+
 \S4method{as.three}{igraph}(object, type = "base", bgColor = "0xffffff",
   nodeSize = 5, edgeColor = "0x000000", edgeWidth = 5, fontSize = 20,
   fontColor = "0x000000", fontOffset = c(x = 5, y = 5, z = 5),
@@ -43,16 +45,21 @@ generate 3d graph with three.js
 \dontrun{
 library(polmineR)
 library(polmineR.graph)
-bt17merkel <- partition("PLPRTXT", list(text_lp="17", text_speaker="Angela Merkel", text_type="speech"), tf="word")
-bt17merkelColl <- collocations(bt17merkel, pAttribute="word", mc=TRUE)
-bt17merkelCollTrimmed <- trim(bt17merkelColl, cutoff=list(ll=50))
+library(three)
+bt17merkel <- partition("PLPRTXT", text_lp="17", text_speaker="Angela Merkel", text_type="speech", pAttribute="word")
+bt17merkelColl <- cooccurrences(bt17merkel, pAttribute="word", mc=TRUE)
+bt17merkelCollTrimmed <- subset(bt17merkelColl, rank_ll <= 250)
 iMerkel <- asIgraph(bt17merkelCollTrimmed)
 iMerkelComm <- enrich(iMerkel, community=list(method="fastgreedy", weights=FALSE))
 iMerkel3d <- enrich(iMerkelComm, layout="kamada.kawai", dim=3)
-iMerkel3d <- rescale(iMerkel3d, -400, 400)
-as.three(iMerkel3d, bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
-as.three(iMerkel3d, type="raycaster", bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
-as.three(iMerkel3d, type="anaglyph", bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
+iMerkel3d <- three::rescale(iMerkel3d, -400, 400)
+t <- polmineR.graph::as.three(iMerkel3d, bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
+t <- polmineR.graph::as.three(iMerkel3d, type="raycaster", bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
+t <- as.three(iMerkel3d, type="anaglyph", bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
+t <- as.three(iMerkel3d, type="disco", bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
+toView <- three:::store(t, directory="/Users/blaette/Lab/tmp/three")
+shiny::runApp("/Users/blaette/Lab/github/polmineR.graph/inst/three")
+browseURL(toView["tmpFileJs"])
 }
 }
 

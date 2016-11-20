@@ -1,10 +1,6 @@
 #' @include generics.R
 NULL
 
-# setOldClass("svg", prototype="characterString")
-
-# setOldClass(c("svg", "XMLInternalDocument", "XMLAbstractDocument"))
-
 setClass(
   "svg",
   slots=c(
@@ -26,12 +22,32 @@ setMethod("print", "svg", function(x) saveXML(x@xml))
 #' @rdname as.svg
 setMethod("as.character", "svg", function(x) saveXML(x@xml))
 
+
+setMethod("html", "svg", function(object){
+  docString <- as.character(object)
+  docHtml <- htmltools::HTML(docString)
+  jsFunction <- "
+  <script>
+  function edgeClick(x, y){
+    console.log(x);
+    console.log(y);
+    Shiny.onInputChange('kwic_query_edgeclick', x);
+    Shiny.onInputChange('kwic_neighbor_edgeclick', y);
+  };
+  function nodeClick(x){
+    console.log(x);
+    Shiny.onInputChange('kwic_query_nodeclick', x);
+  };
+  </script>
+  "
+  gsub("<svg", paste(jsFunction, "<svg", sep=""), docHtml)
+})
+
 #' @importFrom htmltools HTML html_print
 #' @rdname as.svg
 setMethod("show", "svg", function(object){
-  docString <- saveXML(object@xml)
-  docHtml <- HTML(docString)
-  html_print(docHtml)
+  docHtml <- html(object)
+  htmltools::html_print(docHtml)
 })
 
 #' @exportMethod browse

@@ -11,3 +11,5 @@
 #' @rdname polmineR.graph-package
 #' @name polmineR.graph-package
 NULL 
+
+setOldClass("igraph")

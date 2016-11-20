@@ -1,8 +1,7 @@
-#' @import XML
 #' @import methods
 #' @import polmineR
-#' @import igraph
-#' @include generics.R igraph.R 
+#' @importFrom igraph graph.data.frame delete.vertices
+#' @include generics.R igraph_methods.R 
 NULL
 
 
@@ -65,15 +64,18 @@ setMethod("asIgraph", "cooccurrences", function(x, edgeAttributes="ll", verticeA
 #' @importFrom htmltools html_print HTML
 #' @examples
 #' \dontrun{
+#' library(polmineR)
+#' library(polmineR.graph)
 #' bt17merkel <- partition(
-#'   "PLPRTXT", list(text_lp="17", text_speaker="Angela Merkel", text_type="speech"),
-#'   tf="word"
+#'   "PLPRTXT", text_lp="17", text_speaker="Angela Merkel", text_type="speech",
+#'   pAttribute="word"
 #'   )
 #' bt17merkelColl <- cooccurrences(bt17merkel, pAttribute="word", mc=TRUE)
-#' bt17merkelCollTrimmed <- trim(bt17merkelColl, cutoff=list(ll=60))
+#' bt17merkelCollTrimmed <- subset(bt17merkelColl, ll >=150)
 #' iMerkel <- asIgraph(bt17merkelCollTrimmed)
 #' iMerkelComm <- enrich(iMerkel, community=list(method="fastgreedy", weights=FALSE))
 #' merkelSvg <- as.svg(iMerkelComm, width=1000, height=1000)
+#' merkelSvg
 #' }
 #' @rdname as.svg
 #' @exportMethod as.svg
