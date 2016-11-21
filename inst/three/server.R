@@ -1,11 +1,7 @@
-library(shiny)
-library(polmineR)
-library(magrittr)
-library(DT)
-
-
 shinyServer(function(input, output, session) {
+  
   graphServer(input, output, session)
+  kwicServer(input, output, session) # in package polmineR.shiny
   
   observe({
     session$sendCustomMessage(type = 'passCallibrationX', as.numeric(input$graph_callibration_x))

@@ -1,8 +1,3 @@
-library(shiny)
-library(polmineR)
-library(shinyjs)
-library(shinythemes)
-
 shinyThemeToUse <- shinytheme("cerulean") # alternatives: flatly, cerulean
 
 threeObjects <- getObjects('three')
@@ -51,7 +46,30 @@ shinyUI(
       tags$script('var calibrationX = 5; Shiny.addCustomMessageHandler("passCallibrationX", function(calibrateX) {calibrationX = calibrateX; console.log(calibrationX);});'),
       tags$script('var calibrationY = 5; Shiny.addCustomMessageHandler("passCallibrationY", function(calibrateY) {calibrationY = calibrateY; console.log(calibrationY);});')
       
-      
+    ),
+    
+    tabPanel(
+      title = "cooccurrences",
+      sidebarLayout(
+        sidebarPanel(),
+        mainPanel()
+      )
+    ),
+    
+    tabPanel(
+      title = "kwic",
+      sidebarLayout(
+        sidebarPanel(kwicUiInput()),
+        mainPanel(kwicUiOutput())
+      )
+    ),
+    
+    tabPanel(
+      title = "fulltext",
+      sidebarLayout(
+        sidebarPanel(),
+        mainPanel()
+      )
     ),
     
     tabPanel(
