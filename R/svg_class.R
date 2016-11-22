@@ -3,14 +3,14 @@ NULL
 
 setClass(
   "svg",
-  slots=c(
-    xml="XMLInternalDocument",
-    igraph="igraph",
-    width="numeric",
-    height="numeric",
-    margin="numeric",
-    fontSize="numeric",
-    textOffset="numeric"
+  slots = c(
+    xml = "XMLInternalDocument",
+    igraph = "igraph",
+    width = "numeric",
+    height = "numeric",
+    margin = "numeric",
+    fontSize = "numeric",
+    textOffset = "numeric"
     )
   )
 

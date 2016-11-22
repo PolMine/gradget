@@ -266,7 +266,7 @@ setMethod(
 # })
 
 
-.communityDetection <- function(igraphObject, method="fastgreedy", weights=FALSE){
+.communityDetection <- function(igraphObject, method = "fastgreedy", weights = FALSE){
   colors <- c(
     brewer.pal(9, "Set1"),
     brewer.pal(8, "Set2"),
@@ -274,12 +274,12 @@ setMethod(
     brewer.pal(8, "Accent")
   )
   if (method=="fastgreedy"){
-    if (is.directed(igraphObject)==TRUE){
-      igraphObject <- trim(igraphObject, as.undirected=TRUE)
+    if (is.directed(igraphObject) == TRUE){
+      igraphObject <- trim(igraphObject, as.undirected = TRUE)
     }
-    if (weights==TRUE){
+    if (weights == TRUE){
       fgComm <- fastgreedy.community(igraphObject, weights=E(igraphObject)$ll)  
-    } else if (weights==FALSE){
+    } else if (weights == FALSE){
 #      fgComm <- fastgreedy.community(igraphObject)
       fgComm <- cluster_fast_greedy(igraphObject)
     }
