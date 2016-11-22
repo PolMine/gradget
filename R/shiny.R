@@ -190,6 +190,7 @@ cooccurrencesServer <- function(input, output, session){
             df[a_word == input$cooccurrences_b][b_word == input$cooccurrences_a]
           ))
         }
+        assign("df", df, envir = get(".polmineR_graph_cache", envir = .GlobalEnv))
         return(df)
       } else {
         df <- data.frame(
@@ -205,26 +206,28 @@ cooccurrencesServer <- function(input, output, session){
   observeEvent(
     input$cooccurrences_table_rows_selected,
     {
-      if (length(input$context_table_rows_selected) > 0){
-        # ctext <- get("ctext", envir = get(".polmineR_shiny_cache", envir = .GlobalEnv))
-        # updateTextInput(
-        #   session, "kwic_neighbor",
-        #   value = ctext@stat[[input$context_pAttribute[1]]][input$context_table_rows_selected]
-        # )
-        # if (input$kwic_object == "partition"){
-        #   updateSelectInput(session, "kwic_object", selected = "partition")
-        #   updateSelectInput(session, "kwic_partition", selected = input$context_partition)
-        # } else if (input$kwic_object == "corpus"){
-        #   updateSelectInput(session, "kwic_object", selected = "corpus")
-        #   updateSelectInput(session, "kwic_corpus", selected = input$context_corpus)
-        # }
-        # updateTextInput(session, "kwic_query", value = input$context_query)
-        # updateSelectInput(session, "kwic_left", selected = input$context_left)
-        # updateSelectInput(session, "kwic_right", selected = input$context_right)
-        # updateSelectInput(session, "kwic_pAttribute", selected = input$context_pAttribute)
-        # updateNavbarPage(session, "polmineR", selected = "kwic")
-        # Time <- as.character(Sys.time())
-        # updateSelectInput(session, "kwic_read", choices = Time, selected = Time)
+      if (length(input$cooccurrences_table_rows_selected) > 0){
+        if (input$cooccurrences_a == ""){
+          statTab <- get(input$cooccurrences_name, envir = .GlobalEnv)@stat
+        } else {
+          statTab <- get("df", envir = get(".polmineR_graph_cache", envir = .GlobalEnv))
+        }
+        updateSelectInput(session, "kwic_object", selected = "partition")
+        updateSelectInput(session, "kwic_partition", selected = get(input$graph_object, envir = .GlobalEnv)@partition)
+        updateTextInput(
+          session, "kwic_query",
+          value = statTab[["a_word"]][input$cooccurrences_table_rows_selected]
+          )
+        updateTextInput(
+          session, "kwic_neighbor",
+          value = statTab[["b_word"]][input$cooccurrences_table_rows_selected]
+        )
+        updateSelectInput(session, "kwic_left", selected = get(input$cooccurrences_name, envir = .GlobalEnv)@left)
+        updateSelectInput(session, "kwic_right", selected = get(input$cooccurrences_name, envir = .GlobalEnv)@right)
+        updateSelectInput(session, "kwic_pAttribute", selected = get(input$cooccurrences_name, envir = .GlobalEnv)@pAttribute)
+        updateNavbarPage(session, "polmineR", selected = "kwic")
+        Time <- as.character(Sys.time())
+        updateSelectInput(session, "kwic_read", choices = Time, selected = Time)
       }
     })
 }

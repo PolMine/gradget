@@ -52,10 +52,13 @@ shinyUI(
     ),
     
     tabPanel(
-      title = "fulltext",
-      sidebarLayout(
-        sidebarPanel(),
-        mainPanel()
+      "read",
+      fluidPage(
+        fluidRow(
+          column(2),
+          column(8, readUiOutput()),
+          column(2)
+        )
       )
     ),
     

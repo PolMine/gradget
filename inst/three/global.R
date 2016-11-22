@@ -14,6 +14,8 @@ assign(
   envir = get(".polmineR_shiny_cache", envir = .GlobalEnv)
 )
 
+assign(".polmineR_graph_cache", new.env())
+
 # startingTime is needed by kwicServer
 assign(
   "startingTime", as.character(Sys.time()),

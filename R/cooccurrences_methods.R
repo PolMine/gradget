@@ -13,11 +13,11 @@ NULL
 #' @param as.undirected logical, whether to turn object into directed graph
 #' @exportMethod asIgraph
 #' @rdname asIgraph
-setMethod("asIgraph", "cooccurrences", function(x, edgeAttributes="ll", verticeAttributes=NULL, as.undirected=TRUE){
+setMethod("asIgraph", "cooccurrences", function(x, edgeAttributes = "ll", verticeAttributes = NULL, as.undirected = TRUE){
   if (!all(edgeAttributes %in% colnames(x@stat))) warning("edgeAttribute supplied is not available")
   tab <- as.data.frame(x)
-  aColsStr <- paste("a_", x@pAttribute, sep="")
-  bColsStr <- paste("b_", x@pAttribute, sep="")
+  aColsStr <- paste("a_", x@pAttribute, sep = "")
+  bColsStr <- paste("b_", x@pAttribute, sep = "")
   tab[["node"]] <- apply(tab, 1, function(x) paste(x[aColsStr], collapse="//"))
   tab[["collocate"]] <- apply(tab, 1, function(x) paste(x[bColsStr], collapse="//"))
 #   for (what in c("node", "collocate")){
