@@ -19,3 +19,5 @@ assign(
   "startingTime", as.character(Sys.time()),
   envir = get(".polmineR_shiny_cache", envir = .GlobalEnv)
 )
+
+i <- 0

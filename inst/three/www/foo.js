@@ -6,6 +6,7 @@ window.mouseY = 100;
 var INTERSECTED, MATCH;
 var radius = 100, theta = 0;
 
+var spacehits = 0;
 
 function init(){
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
@@ -75,20 +76,25 @@ function init(){
   
   raycaster = new THREE.Raycaster();
   container.addEventListener( 'mousemove', firstMouseMove, false );
+  window.addEventListener( 'keydown', onKeyboardInput, true );
+
 }
             
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize( window.innerWidth, window.innerHeight );
-  var rect = document.getElementById("graph").getBoundingClientRect();
-  window.screen.availWidth;
-  window.screen.availHeight;
-  screen.width;
-  screen.height;
-  // console.log(rect.top, rect.right, rect.bottom, rect.left);
-  // console.log(window.innerHeight)
+}
 
+function onKeyboardInput( event ){
+  if (event.defaultPrevented) {
+    return; // Do nothing if the event was already processed
+  }
+  if (event.keyCode === 32){
+    spacehits ++;
+    Shiny.onInputChange('graph_space_pressed', spacehits);
+  }
+  event.preventDefault();
 }
 
 function firstMouseMove ( event ) {
@@ -98,7 +104,6 @@ function firstMouseMove ( event ) {
 	window.mouseX = ( event.clientX / window.innerWidth ) * 2 - 1;
 	window.mouseY = - ( event.clientY / window.innerHeight ) * 2 + 1;
   
-
   render();
   
 }
@@ -128,16 +133,17 @@ function render(){
 			for (var i = 0; i < intersects.length; i++){
         if (intersects[i].object instanceof THREE.Sprite == false){
           if ( intersects[i].object instanceof THREE.Line ) {
-            j = eval(intersects[i].object.id) - 5 - text.length;
-            console.log("edge no: " + j);
-            console.log(Object.keys(edgeData));
+            
+            j = eval(intersects[i].object.id) - 4 - sphereCoords.x.length;
+            Shiny.onInputChange('graph_edge_selected_a', edgeData["a"][j]);
+            Shiny.onInputChange('graph_edge_selected_b', edgeData["b"][j]);
+
 		      } else if ( intersects[i].object instanceof THREE.Mesh ) {
+            
             j = eval(intersects[i].object.id) - 5;
             var vertexInfo = text[j + 1];
-            var vertexDataColumns = Object.keys(vertexData);
-            console.log(vertexInfo);
-            Shiny.onInputChange('node', vertexInfo);
-            console.log(vertexDataColumns);
+            Shiny.onInputChange('graph_node_selected', vertexInfo);
+            
 		      }
           MATCH = intersects[i].object
           break

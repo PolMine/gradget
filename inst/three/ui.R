@@ -22,21 +22,8 @@ shinyUI(
       includeScript("/Users/blaette/Lab/github/polmineR.graph/inst/three/www/foo.js"),
       
       sidebarLayout(
-        sidebarPanel = sidebarPanel(
-          # 2,
-          
-          graphUiInput(),
-          selectInput("three", "three", choices = threeObjects, selected = threeObjects[1]),
-          textInput("foo", "foo", value = "")
-          
-        ),
-        mainPanel = mainPanel(
-          # 10,
-          div(
-            id = "content",
-            uiOutput('three')
-          )
-        )
+        sidebarPanel = sidebarPanel(graphUiInput()),
+        mainPanel = mainPanel( div(id = "content", uiOutput('three')) )
       ),
       
       tags$script("init()"), # happens on load
@@ -51,8 +38,8 @@ shinyUI(
     tabPanel(
       title = "cooccurrences",
       sidebarLayout(
-        sidebarPanel(),
-        mainPanel()
+        sidebarPanel(cooccurrencesUiInput()),
+        mainPanel(cooccurrencesUiOutput())
       )
     ),
     
@@ -77,12 +64,8 @@ shinyUI(
       title = "settings",
       
       sidebarLayout(
-        sidebarPanel(
-          settingsUiInput()
-        ),
-        mainPanel(
-          
-        )
+        sidebarPanel(settingsUiInput()),
+        mainPanel()
         
       )
     ),
