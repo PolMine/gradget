@@ -16,11 +16,11 @@ shinyUI(
       
       title = "graph",
       
-      includeScript("/Library/Frameworks/R.framework/Versions/3.2/Resources/library/three/js/three.min.js"),
-      includeScript("/Library/Frameworks/R.framework/Versions/3.2/Resources/library/three/js/TrackballControls.js"),
-      includeScript("/Users/blaette/Lab/tmp/three/foo.json"),
-      includeScript("/Users/blaette/Lab/github/polmineR.graph/inst/three/www/foo.js"),
-      includeScript("/Users/blaette/Lab/github/polmineR.graph/inst/three/www/AnaglyphEffect.js"),
+      includeScript(system.file("js", "three.min.js", package = "three")),
+      includeScript(system.file("js", "TrackballControls.js", package = "three")),
+      # includeScript("/Users/blaette/Lab/tmp/three/foo.json"),
+      includeScript(system.file("three", "www", "foo.js", package = "polmineR.graph")),
+      includeScript(system.file("three", "www", "AnaglyphEffect.js", package = "polmineR.graph")),
       tags$script('var anaglyphMode = "false"; Shiny.addCustomMessageHandler("setAnaglyphMode", function(anaglyphModeNew) {anaglyphMode = anaglyphModeNew; console.log(anaglyphModeNew);});'),
       
       sidebarLayout(
@@ -76,7 +76,7 @@ shinyUI(
     ),
     
     useShinyjs(debug = TRUE),
-    extendShinyjs(script = "/Users/blaette/Lab/github/polmineR.graph/inst/three/www/shinyjs.js")
+    extendShinyjs(script = system.file("three", "www", "shinyjs.js", package = "polmineR.graph"))
     
   )
 )

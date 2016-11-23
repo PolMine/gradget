@@ -31,4 +31,5 @@ Collate:
     'igraph_methods.R'
     'cooccurrences_methods.R'
     'svg_class.R'
+    'shiny.R'
 RoxygenNote: 5.0.1
