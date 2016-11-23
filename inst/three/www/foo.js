@@ -8,6 +8,12 @@ var radius = 100, theta = 0;
 
 var spacehits = 0;
 
+// defined for anaglyph effect
+var anaglyphMode = true;
+var width = window.innerWidth || 2;
+var height = window.innerHeight || 2;
+
+
 function init(){
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
   camera.position.z = 500;
@@ -77,7 +83,10 @@ function init(){
   raycaster = new THREE.Raycaster();
   container.addEventListener( 'mousemove', firstMouseMove, false );
   window.addEventListener( 'keydown', onKeyboardInput, true );
-
+  
+  // for anaglyph (could or should be conditional)
+  effect = new THREE.AnaglyphEffect( renderer );
+  effect.setSize( width, height );
 }
             
 function onWindowResize() {
@@ -120,7 +129,6 @@ function render(){
 		camera.lookAt( scene.position );
     scene.getObjectByName( "pointLight" ).position.copy( camera.position );
 		
-
 		var vector = new THREE.Vector3(
 		  window.mouseX - calibrationX,
 		  window.mouseY - calibrationY, 1
@@ -181,7 +189,11 @@ function render(){
 		}
 
     scene.getObjectByName( "pointLight" ).position.copy( camera.position );
-    renderer.render( scene, camera );
+    if (anaglyphMode == "true"){
+      effect.render( scene, camera );
+    } else {
+      renderer.render( scene, camera );
+    }
 }
 
 // init();

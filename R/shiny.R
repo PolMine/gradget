@@ -13,9 +13,12 @@ graphUiInput <- function(){
     object = selectInput("graph_object", label = "object", choices = getObjects("cooccurrences", envir = .GlobalEnv)),
     max_rank = sliderInput("graph_max_rank", label = "max. rank", min = 10, max = 1000, value = 200),
     dim = radioButtons("graph_dim", "dimensions", choices = c("2d", "3d"), selected = "3d", inline = TRUE),
+    anaglyph = conditionalPanel(
+      condition = 'input.graph_dim == "3d"',
+      radioButtons("graph_anaglyph_mode", "anaglyph", choices = c("true", "false"), selected = "true", inline = TRUE)
+    ),
     community = radioButtons("graph_communities", label = "communities", choices = c("TRUE", "FALSE"), selected = "TRUE", inline = TRUE),
     layout = selectInput("graph_layout", label = "layout", choices = c("kamada.kawai")),
-    
     # this is a workaround for space clicks
     time = conditionalPanel(
       condition = "input.cooccurrences_go == -1",
@@ -27,7 +30,8 @@ graphUiInput <- function(){
 settingsUiInput <- function(){
   list(
     callibration_x = sliderInput("graph_callibration_x", "x callibration", min = 0, max = 1, value = 0.68, step = 0.01),
-    callibration_y = sliderInput("graph_callibration_y", "y callibration", min = -1, max = 0, value = -0.18, step = 0.01)
+    callibration_y = sliderInput("graph_callibration_y", "y callibration", min = -1, max = 0, value = -0.18, step = 0.01),
+    bgColcour = colourpicker::colourInput(inputId = "graph_background", label = "background")
   )
 }
 
@@ -70,8 +74,9 @@ graphServer <- function(input, output, session){
       
       message("... three dimensions")
       threeObject <- polmineR.graph::as.three(
-        igraphObject, bgColor = "0xcccccc", fontSize = 12, fontColor = "0x000000", nodeSize = 4,
+        igraphObject, type = "anaglyph", bgColor = "0xcccccc", fontSize = 12, fontColor = "0x000000", nodeSize = 4,
         edgeColor = "0xeeeeee", edgeWidth = 3, fontOffset = c(x = 10, y = 10, z = 10)
+        
         )
       
       message("... creating json")

@@ -20,6 +20,8 @@ shinyUI(
       includeScript("/Library/Frameworks/R.framework/Versions/3.2/Resources/library/three/js/TrackballControls.js"),
       includeScript("/Users/blaette/Lab/tmp/three/foo.json"),
       includeScript("/Users/blaette/Lab/github/polmineR.graph/inst/three/www/foo.js"),
+      includeScript("/Users/blaette/Lab/github/polmineR.graph/inst/three/www/AnaglyphEffect.js"),
+      tags$script('var anaglyphMode = "false"; Shiny.addCustomMessageHandler("setAnaglyphMode", function(anaglyphModeNew) {anaglyphMode = anaglyphModeNew; console.log(anaglyphModeNew);});'),
       
       sidebarLayout(
         sidebarPanel = sidebarPanel(graphUiInput()),
@@ -30,8 +32,8 @@ shinyUI(
       tags$script("animate()"),
       
       # to pass calibration factors between slider inputs and javascript
-      tags$script('var calibrationX = 5; Shiny.addCustomMessageHandler("passCallibrationX", function(calibrateX) {calibrationX = calibrateX; console.log(calibrationX);});'),
-      tags$script('var calibrationY = 5; Shiny.addCustomMessageHandler("passCallibrationY", function(calibrateY) {calibrationY = calibrateY; console.log(calibrationY);});')
+      tags$script('var calibrationX = 5; Shiny.addCustomMessageHandler("passCallibrationX", function(calibrateX) {calibrationX = calibrateX;});'),
+      tags$script('var calibrationY = 5; Shiny.addCustomMessageHandler("passCallibrationY", function(calibrateY) {calibrationY = calibrateY;});')
       
     ),
     

@@ -1,6 +1,7 @@
 library(shiny)
 library(shinyjs)
 library(shinythemes)
+library(colourpicker)
 
 library(polmineR.shiny)
 library(polmineR)

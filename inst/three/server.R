@@ -13,5 +13,9 @@ shinyServer(function(input, output, session) {
     session$sendCustomMessage(type = 'passCallibrationY', as.numeric(input$graph_callibration_y))
   })
   
+  observe({
+    session$sendCustomMessage(type = 'setAnaglyphMode', input$graph_anaglyph_mode)
+  })
+  
   
 })
