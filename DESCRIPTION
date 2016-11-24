@@ -27,9 +27,10 @@ License: CC BY-NC-SA 3.0 | file LICENSE
 Collate:
     'polmineR.graph_package.R'
     'as.three_method.R'
+    'coerce_methods.R'
     'generics.R'
     'igraph_methods.R'
     'cooccurrences_methods.R'
-    'svg_class.R'
     'shiny.R'
+    'svg_class.R'
 RoxygenNote: 5.0.1

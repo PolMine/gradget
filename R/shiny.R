@@ -19,7 +19,7 @@ graphUiInput <- function(){
     ),
     community = radioButtons("graph_communities", label = "communities", choices = c("TRUE", "FALSE"), selected = "TRUE", inline = TRUE),
     layout = selectInput("graph_layout", label = "layout", choices = c("kamada.kawai")),
-    # this is a workaround for space clicks
+    # this is a workaround for space hits
     time = conditionalPanel(
       condition = "input.cooccurrences_go == -1",
       selectInput("cooccurrences_time", "time", choices = Sys.time())
@@ -27,6 +27,7 @@ graphUiInput <- function(){
   )
 }
 
+#' @export settingsUiInput
 settingsUiInput <- function(){
   list(
     callibration_x = sliderInput("graph_callibration_x", "x callibration", min = 0, max = 1, value = 0.68, step = 0.01),
@@ -37,69 +38,55 @@ settingsUiInput <- function(){
 
 
 
-#' @export graphUiInput
+#' @export graphUiOutput
 graphUiOutput <- function(){
   
 }
 
-
+#' @export graphServer
 #' @export graphServer
 graphServer <- function(input, output, session){
 
   observeEvent(
     input$graph_go,
-    if (input$graph_go > 0){
-      
-      coocObject <- get(input$graph_object, envir = .GlobalEnv)
-      
-      message("... trimming object / applying max_rank")
-      maxValue <- as.integer(input$graph_max_rank)
-      coocObject@stat <- coocObject@stat[which(coocObject[["rank_ll"]] <= maxValue)]
-      
-      message("... as igraph")
-      igraphObject <- asIgraph(coocObject)
-      
-      message("... community detection")
-      igraphObject <- enrich(igraphObject, community = list(method = "fastgreedy", weights=FALSE))
-      
-      message("... layout / coordinates")
-      igraphObject <- enrich(igraphObject, layout = "kamada.kawai", dim = 3)
-      
-      message("... rescaling")
-      igraphObject <- three::rescale(igraphObject, -400, 400)
-      
-      print(length(V(igraphObject)))
-      
-      message("... three dimensions")
-      threeObject <- polmineR.graph::as.three(
-        igraphObject, type = "anaglyph", bgColor = "0xcccccc", fontSize = 12, fontColor = "0x000000", nodeSize = 4,
-        edgeColor = "0xeeeeee", edgeWidth = 3, fontOffset = c(x = 10, y = 10, z = 10)
+    {
+      if (input$graph_go > 0){
         
+        coocObject <- get(input$graph_object, envir = .GlobalEnv)
+        
+        message("... trimming object / applying max_rank")
+        maxValue <- as.integer(input$graph_max_rank)
+        coocObject@stat <- coocObject@stat[which(coocObject[["rank_ll"]] <= maxValue)]
+        
+        message("... as igraph")
+        igraphObject <- asIgraph(coocObject)
+        
+        message("... community detection")
+        igraphObject <- enrich(igraphObject, community = list(method = "fastgreedy", weights=FALSE))
+        
+        message("... layout / coordinates")
+        igraphObject <- enrich(igraphObject, layout = "kamada.kawai", dim = 3)
+        
+        message("... rescaling")
+        igraphObject <- three::rescale(igraphObject, -400, 400)
+        
+        message("... three dimensions")
+        threeObject <- polmineR.graph::as.three(
+          igraphObject, type = "anaglyph", bgColor = "0xcccccc", fontSize = 12, fontColor = "0x000000", nodeSize = 4,
+          edgeColor = "0xeeeeee", edgeWidth = 3, fontOffset = c(x = 10, y = 10, z = 10)
+          
         )
-      
-      message("... creating json")
-      newJson <- as(threeObject, "json")
-      
-      message("... transferring new values")
-      js$reloadData(newJson)
-      js$reinitialize()
-      
-      return(NULL)
-      
-    } else {
-      
-      
-      threeObject <- get(input$three, env = .GlobalEnv)
-      json <- paste(
-        unlist(lapply(
-          names(threeObject@json),
-          function(name){ paste(name, " = ", threeObject@json[[name]], ";", sep="") })
-        ),
-        collapse = "\n"
-      )
-      json <- paste(scan("/Users/blaette/Lab/tmp/three/foo.json", what  = "character", sep = "\n"), sep = "\n", collapse = "\n")
-      print("foo")
-      js$reset("a = 'something'")
+        
+        message("... creating json")
+        newJson <- as(threeObject, "json")
+        
+        message("... transferring new values")
+        js$reloadData(newJson)
+        js$reinitialize()
+        
+        return(NULL)
+        
+      }
     }
   )
   
@@ -147,6 +134,7 @@ graphServer <- function(input, output, session){
 ##                     ##
 #########################
 
+#' @export cooccurrencesUiInput
 cooccurrencesUiInput <- function(){
   list(
     actionButton("cooccurrences_go", "", icon = icon("play", lib = "glyphicon")),
@@ -159,8 +147,7 @@ cooccurrencesUiInput <- function(){
 }
 
 
-#' @rdname shiny_helper_functions
-#' @export contextUiOutput
+#' @export cooccurrencesUiOutput
 cooccurrencesUiOutput <- function(){
   list(
     DT::dataTableOutput('cooccurrences_table')
@@ -168,8 +155,7 @@ cooccurrencesUiOutput <- function(){
 }
 
 
-#' @rdname shiny_helper_functions
-#' @export contextServer
+#' @export cooccurrencesServer
 cooccurrencesServer <- function(input, output, session){
   
   output$cooccurrences_table <- DT::renderDataTable({

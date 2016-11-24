@@ -18,7 +18,7 @@ shinyUI(
       
       includeScript(system.file("js", "three.min.js", package = "three")),
       includeScript(system.file("js", "TrackballControls.js", package = "three")),
-      # includeScript("/Users/blaette/Lab/tmp/three/foo.json"),
+      includeScript(jsonTmpFile), # json-file generated in global.R
       includeScript(system.file("three", "www", "foo.js", package = "polmineR.graph")),
       includeScript(system.file("three", "www", "AnaglyphEffect.js", package = "polmineR.graph")),
       tags$script('var anaglyphMode = "false"; Shiny.addCustomMessageHandler("setAnaglyphMode", function(anaglyphModeNew) {anaglyphMode = anaglyphModeNew; console.log(anaglyphModeNew);});'),

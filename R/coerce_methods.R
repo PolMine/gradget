@@ -1,4 +1,5 @@
-#' @importClassesFrom jsonlite json
+setOldClass("json")
+
 setAs(
   from = "three", to = "json",
   def = function(from){
