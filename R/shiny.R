@@ -49,14 +49,12 @@ graphServer <- function(input, output, session){
   observeEvent(
     input$graph_go,
     if (input$graph_go > 0){
+      
       coocObject <- get(input$graph_object, envir = .GlobalEnv)
       
       message("... trimming object / applying max_rank")
       maxValue <- as.integer(input$graph_max_rank)
-      print(maxValue)
-      print(nrow(coocObject@stat))
       coocObject@stat <- coocObject@stat[which(coocObject[["rank_ll"]] <= maxValue)]
-      print(nrow(coocObject@stat))
       
       message("... as igraph")
       igraphObject <- asIgraph(coocObject)
@@ -80,13 +78,7 @@ graphServer <- function(input, output, session){
         )
       
       message("... creating json")
-      newJson <- paste(
-        unlist(lapply(
-          names(threeObject@json),
-          function(name){ paste(name, " = ", threeObject@json[[name]], ";", sep="") })
-        ),
-        collapse = "\n"
-      )
+      newJson <- as(threeObject, "json")
       
       message("... transferring new values")
       js$reloadData(newJson)
@@ -95,6 +87,8 @@ graphServer <- function(input, output, session){
       return(NULL)
       
     } else {
+      
+      
       threeObject <- get(input$three, env = .GlobalEnv)
       json <- paste(
         unlist(lapply(
