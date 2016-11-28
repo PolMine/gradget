@@ -13,6 +13,7 @@ NULL
 #' @param as.undirected logical, whether to turn object into directed graph
 #' @exportMethod asIgraph
 #' @rdname asIgraph
+#' @importFrom igraph as.undirected
 setMethod("asIgraph", "cooccurrences", function(x, edgeAttributes = "ll", verticeAttributes = NULL, as.undirected = TRUE){
   if (!all(edgeAttributes %in% colnames(x@stat))) warning("edgeAttribute supplied is not available")
   tab <- as.data.frame(x)

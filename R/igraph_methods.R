@@ -112,40 +112,36 @@ setOldClass("igraph")
   edgelistId <- get.edgelist(igraphObject, names=FALSE)
   edgelistString <- get.edgelist(igraphObject, names=TRUE)
   .lineNode <- function(i){
-    linkNode <- newXMLNode(
-      "a",
-      attrs=c(
-        onClick=paste("edgeClick(x='", edgelistString[i,1], "', y='", edgelistString[i,2], "')", sep="")
-      ),
-#      attrs=c(
-#        "xlink:href"=paste(
-#          "http://localhost/cgi-bin/R/graph2kwic?",
-#          "partition=", attr(igraphObject, "partition"), "__node=", edgelistString[i,1],
-#          "__collocate=", edgelistString[i,2], sep="")
-#      ),
-      suppressNamespaceWarning = TRUE
-    )
+    # linkNode <- newXMLNode(
+    #   "a",
+    #   attrs=c(
+    #     onClick = paste("edgeClick(x='", edgelistString[i,1], "', y='", edgelistString[i,2], "')", sep="")
+    #   ),
+    #   suppressNamespaceWarning = TRUE
+    # )
     llValues <- as.character(round(unlist(E(igraphObject)$ll[i]), 2))
     newLineNode <- newXMLNode(
       "line",
       attrs=c(
         style="stroke:black; stroke-width:1px; fill:none;",
-        x1=as.character(V(igraphObject)[edgelistId[i,1]]$x),
-        y1=as.character(V(igraphObject)[edgelistId[i,1]]$y),
-        x2=as.character(V(igraphObject)[edgelistId[i,2]]$x),
-        y2=as.character(V(igraphObject)[edgelistId[i,2]]$y),
-        from=as.character(edgelistId[i,1]),
-        to=as.character(edgelistId[i,2]),
-        llXY=llValues[1],
-        llYX=ifelse(is.na(llValues[2]), "NA", llValues[2])
+        x1 = as.character(V(igraphObject)[edgelistId[i,1]]$x),
+        y1 = as.character(V(igraphObject)[edgelistId[i,1]]$y),
+        x2 = as.character(V(igraphObject)[edgelistId[i,2]]$x),
+        y2 = as.character(V(igraphObject)[edgelistId[i,2]]$y),
+        from = as.character(edgelistId[i,1]),
+        to = as.character(edgelistId[i,2]),
+        llXY = llValues[1],
+        llYX = ifelse(is.na(llValues[2]), "NA", llValues[2]),
+        onclick = paste("edgeClick(x='", edgelistString[i,1], "', y='", edgelistString[i,2], "')", sep="")
       )
     )
     tooltipNode <- newXMLNode("title")
     labelStat <- paste(llValues, collapse=" / ")
     newXMLTextNode(paste(edgelistString[i,1], " - ", edgelistString[i,2], " (ll: ", labelStat, ")", sep=""), tooltipNode)
     addChildren(newLineNode, tooltipNode)
-    addChildren(linkNode,newLineNode)
-    linkNode
+    # addChildren(linkNode,newLineNode)
+    # linkNode
+    newLineNode
   }
   retval <- lapply(c(1:nrow(edgelistId)), .lineNode)    
   if (returnXML == FALSE) retval <- paste(lapply(retval, saveXML), collapse="\n")
@@ -156,25 +152,19 @@ setOldClass("igraph")
 
 .textNodes <- function(igraphObject, fontSize=8, textOffset=3, returnXML=TRUE){
   .textNode <- function(i){
-    linkNode <- newXMLNode(
-      "a",
-      # attrs=c("xlink:href"=paste("http://localhost/cgi-bin/R/graph2kwic?", "partition=", attr(igraphObject, "partition"), "__node=", V(igraphObject)[i]$name, sep="")),
-      attrs=c("onClick"=paste("nodeClick(x='", V(igraphObject)[i]$name, "')", sep="")),
-      suppressNamespaceWarning=TRUE
-    )
     textNode <- newXMLNode(
       "text",
       attrs=c(
-        fill="red",
-        style=paste("font-size:", as.character(fontSize), "px;font-family:sans-serif", sep=""),
-        x=V(igraphObject)[i]$x + textOffset,
-        y=V(igraphObject)[i]$y - textOffset,
-        nodeId=as.character(i)
+        fill = "red",
+        style = paste("font-size:", as.character(fontSize), "px;font-family:sans-serif", sep=""),
+        x = V(igraphObject)[i]$x + textOffset,
+        y = V(igraphObject)[i]$y - textOffset,
+        onclick = paste("nodeClick('", V(igraphObject)[i]$name, "')", sep = ""),
+        nodeId = as.character(i)
       )
     )
     newXMLTextNode(V(igraphObject)[i]$name, parent=textNode)
-    addChildren(linkNode, textNode)
-    linkNode
+    textNode
   }
   retval <- lapply(1:length(V(igraphObject)), .textNode)    
   if (returnXML == FALSE) retval <- paste(lapply(retval, saveXML), collapse="\n")
@@ -200,13 +190,15 @@ setOldClass("igraph")
 #' @rdname as.svg
 #' @aliases as.svg as.svg,collocations-method browse,svg-method browse plot,igraph-method plot,svg-method
 #' @exportMethod as.svg
+#' @importFrom XML xmlRoot
+#' @importFrom igraph V
 setMethod(
   "as.svg", "igraph",
   function(
-    object, layout="kamada.kawai", width=400, height=400, margin=50,
-    fontSize=8, textOffset=5, edgeAttributes="ll", verticeAttributes="tf",
-    pandocTab=TRUE,
-    mc=FALSE, returnXML=FALSE, verbose=TRUE
+    object, layout = "kamada.kawai", width = 400, height = 400, margin = 50,
+    fontSize = 8, textOffset = 5, edgeAttributes = "ll", verticeAttributes = "tf",
+    pandocTab = TRUE,
+    mc = FALSE, returnXML = FALSE, verbose = TRUE
   ){
     if (!is.null(layout)){
       if (verbose==TRUE) message("... calculate coordinates")

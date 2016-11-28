@@ -36,7 +36,7 @@ setMethod("html", "svg", function(object){
   };
   function nodeClick(x){
     console.log(x);
-    Shiny.onInputChange('kwic_query_nodeclick', x);
+    Shiny.onInputChange('kwic_query', x);
   };
   </script>
   "
@@ -56,7 +56,7 @@ setMethod("browse", "svg", function(object){
   tmpFile <- tempfile(fileext=".html")
   docString <- saveXML(object@xml)
   docHtml <- HTML(docString)
-  cat(docHtml, file=tmpFile)
+  cat(docHtml, file = tmpFile)
   browseURL(tmpFile)
 })
 
@@ -112,6 +112,7 @@ setMethod("plot", "svg", function(x,y=NULL, ...){
 })
 
 #' @rdname asIgraph
+#' @importFrom XML xmlAttrs<- xmlAttrs
 setMethod("asIgraph", "svg", function(x, as.undirected=TRUE){
   nodeTab <- do.call(rbind, xpathApply(x@xml, "//circle", xmlAttrs))
   rownames(nodeTab) <- nodeTab[,"token"]

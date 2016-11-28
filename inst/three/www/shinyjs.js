@@ -86,3 +86,15 @@ shinyjs.reloadData = function(x){
   eval(x[0])
 }
 
+shinyjs.twoDimGraph = function(svg){
+  console.error("removing content now")
+  var container = document.createElement( 'div' );
+  container.setAttribute("id", "graph");
+  var xmlDoc = new DOMParser().parseFromString(svg[0], "text/xml");
+  console.log(xmlDoc.documentElement)
+
+  container.appendChild(xmlDoc.documentElement);
+  graphNode = document.getElementById('graph');
+  parentNode = graphNode.parentNode;
+  parentNode.replaceChild(container, graphNode);
+}

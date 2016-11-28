@@ -2,6 +2,10 @@ library(shiny)
 library(shinyjs)
 library(shinythemes)
 library(colourpicker)
+library(data.table)
+
+library(igraph)
+library(three)
 
 library(polmineR.shiny)
 library(polmineR)
@@ -40,3 +44,36 @@ threeObject <- polmineR.graph::as.three(
 newJson <- as(threeObject, "json")
 jsonTmpFile <- tempfile()
 cat(newJson, file = jsonTmpFile)
+
+
+jsFunctionClick <- "
+  
+  function edgeClick(x, y){
+    document.getElementById('cooccurrences_a').value = x;
+    Shiny.onInputChange('cooccurrences_a', x);
+
+    document.getElementById('cooccurrences_b').value = y;
+    Shiny.onInputChange('cooccurrences_b', y);
+
+    // document.getElementById('cooccurrences_time').value = Date();
+    // Shiny.onInputChange('cooccurrences_time', Date());
+    
+    document.getElementById('cooccurrences_any').value = Date().toString();
+    Shiny.onInputChange('cooccurrences_any', Date().toString());
+    
+    spacehits ++;
+    Shiny.onInputChange('graph_space_pressed', spacehits);
+
+};
+  
+  function nodeClick(x){
+    document.getElementById('cooccurrences_a').value = x;
+    Shiny.onInputChange('cooccurrences_a', x);
+
+    document.getElementById('cooccurrences_b').value = '';
+    Shiny.onInputChange('cooccurrences_b', '');
+
+    spacehits ++;
+    Shiny.onInputChange('graph_space_pressed', spacehits);
+  };
+"

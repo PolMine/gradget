@@ -6,8 +6,6 @@ shinyUI(
   
   navbarPage(
     
-    #titlePanel("Hello Shiny!"),
-    
     theme = shinyThemeToUse,
     title = "polmineR",
     id = "polmineR",
@@ -22,14 +20,16 @@ shinyUI(
       includeScript(system.file("three", "www", "foo.js", package = "polmineR.graph")),
       includeScript(system.file("three", "www", "AnaglyphEffect.js", package = "polmineR.graph")),
       tags$script('var anaglyphMode = "false"; Shiny.addCustomMessageHandler("setAnaglyphMode", function(anaglyphModeNew) {anaglyphMode = anaglyphModeNew; console.log(anaglyphModeNew);});'),
+      tags$script(jsFunctionClick),
       
       sidebarLayout(
         sidebarPanel = sidebarPanel(graphUiInput()),
-        mainPanel = mainPanel( div(id = "content", uiOutput('three')) )
+        mainPanel = mainPanel( div(id = "content") )
       ),
       
-      tags$script("init()"), # happens on load
-      tags$script("animate()"),
+      # tags$script("init()"), # happens on load
+      # tags$script("animate()"),
+      tags$script("var container = document.createElement( 'div' ); container.setAttribute('id', 'graph'); document.getElementById('content').appendChild( container );"),
       
       # to pass calibration factors between slider inputs and javascript
       tags$script('var calibrationX = 5; Shiny.addCustomMessageHandler("passCallibrationX", function(calibrateX) {calibrationX = calibrateX;});'),
@@ -69,7 +69,7 @@ shinyUI(
       title = "settings",
       
       sidebarLayout(
-        sidebarPanel(settingsUiInput()),
+        sidebarPanel(settingsGraphUiInput()),
         mainPanel()
         
       )

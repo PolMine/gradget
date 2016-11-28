@@ -20,6 +20,7 @@ graphUiInput <- function(){
     community = radioButtons("graph_communities", label = "communities", choices = c("TRUE", "FALSE"), selected = "TRUE", inline = TRUE),
     layout = selectInput("graph_layout", label = "layout", choices = c("kamada.kawai")),
     # this is a workaround for space hits
+
     time = conditionalPanel(
       condition = "input.cooccurrences_go == -1",
       selectInput("cooccurrences_time", "time", choices = Sys.time())
@@ -27,8 +28,8 @@ graphUiInput <- function(){
   )
 }
 
-#' @export settingsUiInput
-settingsUiInput <- function(){
+#' @export settingsGraphUiInput
+settingsGraphUiInput <- function(){
   list(
     callibration_x = sliderInput("graph_callibration_x", "x callibration", min = 0, max = 1, value = 0.68, step = 0.01),
     callibration_y = sliderInput("graph_callibration_y", "y callibration", min = -1, max = 0, value = -0.18, step = 0.01),
@@ -40,13 +41,48 @@ settingsUiInput <- function(){
 
 #' @export graphUiOutput
 graphUiOutput <- function(){
-  
 }
 
 #' @export graphServer
 #' @export graphServer
 graphServer <- function(input, output, session){
 
+  observeEvent(
+    input$graph_dim,
+    {
+      if (input$graph_dim == "2d"){
+        print("switching to 2d mode")
+        
+        coocObject <- get(input$graph_object, envir = .GlobalEnv)
+        print(dim(coocObject))
+        print(is(coocObject))
+        
+        message("... trimming object / applying max_rank")
+        maxValue <- as.integer(input$graph_max_rank)
+        print(maxValue)
+        coocObject@stat <- coocObject@stat[which(coocObject[["rank_ll"]] <= maxValue)]
+        
+        message("... as igraph")
+        igraphObject <- asIgraph(coocObject)
+        
+        message("... community detection")
+        igraphObject <- enrich(igraphObject, community = list(method = "fastgreedy", weights=FALSE))
+        
+        message("... layout / coordinates")
+        igraphObject <- enrich(igraphObject, layout = "kamada.kawai", dim = 3)
+        
+        message("... rescaling")
+        igraphObject <- three::rescale(igraphObject, -600, 600)
+        
+        foo <- XML::saveXML(as.svg(igraphObject, width = 800, height = 800)@xml)
+        foo <- gsub("^.*?(<svg.*?</svg>).*$", "\\1", foo)
+        foo <- gsub("(<svg.*?>)", paste("\\1<script>", jsFunctionClick, "</script>", sep = ""), foo)
+        
+        js$twoDimGraph(foo)
+      }
+    }
+  )
+  
   observeEvent(
     input$graph_go,
     {
@@ -67,31 +103,40 @@ graphServer <- function(input, output, session){
         message("... layout / coordinates")
         igraphObject <- enrich(igraphObject, layout = "kamada.kawai", dim = 3)
         
-        message("... rescaling")
-        igraphObject <- three::rescale(igraphObject, -400, 400)
         
-        message("... three dimensions")
-        threeObject <- polmineR.graph::as.three(
-          igraphObject, type = "anaglyph", bgColor = "0xcccccc", fontSize = 12, fontColor = "0x000000", nodeSize = 4,
-          edgeColor = "0xeeeeee", edgeWidth = 3, fontOffset = c(x = 10, y = 10, z = 10)
+        if (input$graph_dim == "2d"){
           
-        )
+          message("... rescaling")
+          igraphObject <- three::rescale(igraphObject, -600, 600)
+          
+          foo <- XML::saveXML(as.svg(igraphObject, width = 800, height = 800)@xml)
+          foo <- gsub("^.*?(<svg.*?</svg>).*$", "\\1", foo)
+          foo <- gsub("(<svg.*?>)", paste("\\1<script>", jsFunctionClick, "</script>", sep = ""), foo)
+          
+          js$twoDimGraph(foo)
+          
+          
+        } else if (input$graph_dim == "2d"){
+          message("... rescaling")
+          igraphObject <- three::rescale(igraphObject, -400, 400)
+          
+          message("... three dimensions")
+          threeObject <- polmineR.graph::as.three(
+            igraphObject, type = "anaglyph", bgColor = "0xcccccc", fontSize = 12, fontColor = "0x000000", nodeSize = 4,
+            edgeColor = "0xeeeeee", edgeWidth = 3, fontOffset = c(x = 10, y = 10, z = 10)
+          )
+          
+          message("... creating json")
+          newJson <- as(threeObject, "json")
+          
+          message("... transferring new values")
+          js$reloadData(newJson)
+          js$reinitialize()
         
-        message("... creating json")
-        newJson <- as(threeObject, "json")
-        
-        message("... transferring new values")
-        js$reloadData(newJson)
-        js$reinitialize()
-        
-        return(NULL)
-        
+        }
       }
     }
   )
-  
-  output$three <- renderUI({
-  })
   
   observeEvent(
     input$graph_node_selected,
@@ -112,9 +157,11 @@ graphServer <- function(input, output, session){
     updateTextInput(session, "cooccurrences_b", value = input$graph_edge_selected_b)
   )
   
+  
   observeEvent(
     input$graph_space_pressed,
     {
+      Sys.sleep(0.5) # minimal delay required so that values are transferred
       newTime <- as.character(Sys.time())
       updateSelectInput(
         session, "cooccurrences_time",
@@ -142,6 +189,11 @@ cooccurrencesUiInput <- function(){
     selectInput("cooccurrences_name", "name", choices = getObjects("cooccurrences", envir = .GlobalEnv)),
     textInput("cooccurrences_a", "a", value = ""),
     textInput("cooccurrences_b", "b", value = ""),
+    any = conditionalPanel(
+      condition = "input.cooccurrences_go == -1",
+      textInput("cooccurrences_any", "any", value = "default")
+    ),
+    
     br()
   )
 }
@@ -162,17 +214,23 @@ cooccurrencesServer <- function(input, output, session){
     input$cooccurrences_go
     input$cooccurrences_time
     isolate({
-      if (input$cooccurrences_go > 0 && input$cooccurrences_name != ""){
+      if (input$cooccurrences_name != ""){
         df <- get(input$cooccurrences_name, envir = .GlobalEnv)@stat
         
+        a <- input$cooccurrences_a
+        Encoding(a) <- "unknown"
+
         if (input$cooccurrences_a != "" && input$cooccurrences_b == ""){
-          df <- df[a_word == input$cooccurrences_a]
+          df <- df[a_word == a]
         }
         
         if (input$cooccurrences_a != "" && input$cooccurrences_b != ""){
+          b <- input$cooccurrences_b
+          Encoding(b) <- "unknown"
+
           df <- data.table::rbindlist(list(
-            df[a_word == input$cooccurrences_a][b_word == input$cooccurrences_b],
-            df[a_word == input$cooccurrences_b][b_word == input$cooccurrences_a]
+            df[a_word == a][b_word == b],
+            df[a_word == b][b_word == a]
           ))
         }
         assign("df", df, envir = get(".polmineR_graph_cache", envir = .GlobalEnv))
