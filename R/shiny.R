@@ -61,7 +61,7 @@ graphServer <- function(input, output, session){
         
         if (input$graph_reference != ""){
           referenceObject <- get(input$graph_reference, envir = .GlobalEnv)
-          compared <- compare(coocObject, referenceObject)
+          compared <- compare(coocObject,reference)
         }
         
         

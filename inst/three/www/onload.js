@@ -13,6 +13,11 @@ var anaglyphMode = true;
 var width = window.innerWidth || 2;
 var height = window.innerHeight || 2;
 
+var calibrationX = 5;
+Shiny.addCustomMessageHandler("passCallibrationX", function(calibrateX) {calibrationX = calibrateX;});
+
+var calibrationY = 5;
+Shiny.addCustomMessageHandler("passCallibrationY", function(calibrateY) {calibrationY = calibrateY;});
 
 function init(){
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
