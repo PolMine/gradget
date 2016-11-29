@@ -1,10 +1,7 @@
 shinyjs.reinitialize = function(){
   
   console.error("reloading");
-  var rect = document.getElementById("content").getBoundingClientRect();
-  console.log(rect.top, rect.right, rect.bottom, rect.left);
-  
-  
+
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
   camera.position.z = 500;
   controls = new THREE.TrackballControls( camera );

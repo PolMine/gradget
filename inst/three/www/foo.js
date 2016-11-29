@@ -26,7 +26,6 @@ function init(){
   scene.add( pointLight );
   pointLight.position.set( camera.position.x, camera.position.y, camera.position.z + 10 );
                 
-  var size = 256; // CHANGED
   var geometry = new THREE.SphereGeometry( sphereSize, 16, 16 );
   
   for (var i = 0; i < sphereCoords.x.length; i++) {

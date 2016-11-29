@@ -11,6 +11,7 @@ graphUiInput <- function(){
     br(),
     br(),
     object = selectInput("graph_object", label = "object", choices = getObjects("cooccurrences", envir = .GlobalEnv)),
+    reference = selectInput("graph_reference", label = "reference", choices = c("", getObjects("cooccurrences", envir = .GlobalEnv))),
     max_rank = sliderInput("graph_max_rank", label = "max. rank", min = 10, max = 1000, value = 200),
     dim = radioButtons("graph_dim", "dimensions", choices = c("2d", "3d"), selected = "3d", inline = TRUE),
     anaglyph = conditionalPanel(
@@ -19,6 +20,7 @@ graphUiInput <- function(){
     ),
     community = radioButtons("graph_communities", label = "communities", choices = c("TRUE", "FALSE"), selected = "TRUE", inline = TRUE),
     layout = selectInput("graph_layout", label = "layout", choices = c("kamada.kawai")),
+    cutoff = sliderInput("graph_cutoff", label = "min group size", min = 1, max = 100, value = 2),
     # this is a workaround for space hits
 
     time = conditionalPanel(
@@ -57,6 +59,12 @@ graphServer <- function(input, output, session){
         print(dim(coocObject))
         print(is(coocObject))
         
+        if (input$graph_reference != ""){
+          referenceObject <- get(input$graph_reference, envir = .GlobalEnv)
+          compared <- compare(coocObject, referenceObject)
+        }
+        
+        
         message("... trimming object / applying max_rank")
         maxValue <- as.integer(input$graph_max_rank)
         print(maxValue)
@@ -64,6 +72,13 @@ graphServer <- function(input, output, session){
         
         message("... as igraph")
         igraphObject <- asIgraph(coocObject)
+        
+        if (input$graph_cutoff >= 2){
+          message("... removing components")
+          comps <- components(igraphObject)
+          verticesToDrop <- which(comps[[1]] %in% (1:max(comps[[2]]))[which(comps[[2]] <= input$graph_cutoff)])
+          igraphObject <- delete_vertices(igraphObject, verticesToDrop)
+        }
         
         message("... community detection")
         igraphObject <- enrich(igraphObject, community = list(method = "fastgreedy", weights=FALSE))
@@ -97,6 +112,13 @@ graphServer <- function(input, output, session){
         message("... as igraph")
         igraphObject <- asIgraph(coocObject)
         
+        if (input$graph_cutoff >= 2){
+          message("... removing components")
+          comps <- components(igraphObject)
+          verticesToDrop <- which(comps[[1]] %in% (1:max(comps[[2]]))[which(comps[[2]] <= input$graph_cutoff)])
+          igraphObject <- delete_vertices(igraphObject, verticesToDrop)
+        }
+        
         message("... community detection")
         igraphObject <- enrich(igraphObject, community = list(method = "fastgreedy", weights=FALSE))
         
@@ -116,7 +138,7 @@ graphServer <- function(input, output, session){
           js$twoDimGraph(foo)
           
           
-        } else if (input$graph_dim == "2d"){
+        } else if (input$graph_dim == "3d"){
           message("... rescaling")
           igraphObject <- three::rescale(igraphObject, -400, 400)
           
