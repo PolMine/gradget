@@ -19,6 +19,10 @@ Shiny.addCustomMessageHandler("passCallibrationX", function(calibrateX) {calibra
 var calibrationY = 5;
 Shiny.addCustomMessageHandler("passCallibrationY", function(calibrateY) {calibrationY = calibrateY;});
 
+var container = document.createElement( 'div' );
+container.setAttribute('id', 'graph');
+document.getElementById('content').appendChild( container );
+
 function init(){
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
   camera.position.z = 500;
@@ -79,7 +83,9 @@ function init(){
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.setClearColor(0xcccccc, 1);
+  
   // document.body.appendChild(renderer.domElement);
+  
   container.appendChild( renderer.domElement );
   window.addEventListener( 'resize', onWindowResize, false );
   
