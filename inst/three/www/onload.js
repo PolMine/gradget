@@ -84,15 +84,13 @@ function init(){
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.setClearColor(0xcccccc, 1);
   
-  // document.body.appendChild(renderer.domElement);
-  
   container.appendChild( renderer.domElement );
+  
   window.addEventListener( 'resize', onWindowResize, false );
-  
-  
-  raycaster = new THREE.Raycaster();
   container.addEventListener( 'mousemove', firstMouseMove, false );
   window.addEventListener( 'keydown', onKeyboardInput, true );
+
+  raycaster = new THREE.Raycaster();
   
   // for anaglyph (could or should be conditional)
   effect = new THREE.AnaglyphEffect( renderer );

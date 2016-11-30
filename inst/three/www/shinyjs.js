@@ -83,6 +83,14 @@ shinyjs.reloadData = function(x){
   eval(x[0])
 }
 
+shinyjs.removeEventListeners = function(){
+  controls.removeEventListener('change', render);
+  window.removeEventListener( 'resize', onWindowResize);
+  container.removeEventListener( 'mousemove', firstMouseMove);
+  window.removeEventListener( 'keydown', onKeyboardInput);
+
+}
+
 shinyjs.twoDimGraph = function(svg){
   console.error("removing content now")
   var container = document.createElement( 'div' );
