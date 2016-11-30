@@ -10,6 +10,7 @@
 #' @docType package
 #' @rdname polmineR.graph
 #' @name polmineR.graph-package
+#' @import data.table
 #' @examples
 #' \dontrun{
 #' library(polmineR)

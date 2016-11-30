@@ -23,7 +23,7 @@ var container = document.createElement( 'div' );
 container.setAttribute('id', 'graph');
 document.getElementById('content').appendChild( container );
 
-function init(){
+function createScene(){
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
   camera.position.z = 500;
   controls = new THREE.TrackballControls( camera );
@@ -34,9 +34,13 @@ function init(){
   pointLight.name = "pointLight";
   scene.add( pointLight );
   pointLight.position.set( camera.position.x, camera.position.y, camera.position.z + 10 );
-                
-  var geometry = new THREE.SphereGeometry( sphereSize, 16, 16 );
+  return scene;
   
+}
+
+function createGraph(scene){
+  
+  var geometry = new THREE.SphereGeometry( sphereSize, 16, 16 );
   for (var i = 0; i < sphereCoords.x.length; i++) {
 		var material = new THREE.MeshLambertMaterial( {color: eval(sphereColor[i]), shading: THREE.FlatShading });
 		var mesh = new THREE.Mesh(geometry, material);
@@ -74,11 +78,14 @@ function init(){
 		sp.position.set(textCoords.x[i] - textOffset.x, textCoords.y[i] - textOffset.y, textCoords.z[i] - textOffset.y);
 		scene.add(sp);
 	}
-  
+	
+	return scene;
+
+}
+
+function createContainer(){
   var container = document.createElement( 'div' );
   container.setAttribute("id", "graph")
-  
-  document.getElementById('content').appendChild( container );
   
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight)
@@ -86,15 +93,25 @@ function init(){
   
   container.appendChild( renderer.domElement );
   
+  return container;
+}
+
+function init(){
+  
+  scene = createScene();
+  scene = createGraph(scene);
+  container = createContainer();
+
   window.addEventListener( 'resize', onWindowResize, false );
-  container.addEventListener( 'mousemove', firstMouseMove, false );
   window.addEventListener( 'keydown', onKeyboardInput, true );
+  container.addEventListener( 'mousemove', firstMouseMove, false );
 
   raycaster = new THREE.Raycaster();
+  effect = new THREE.AnaglyphEffect( renderer ); // for anaglyph effect
+  effect.setSize( width, height ); // for anaglyph effect
   
-  // for anaglyph (could or should be conditional)
-  effect = new THREE.AnaglyphEffect( renderer );
-  effect.setSize( width, height );
+  document.getElementById('content').appendChild( container );
+  
 }
             
 function onWindowResize() {
@@ -203,6 +220,3 @@ function render(){
       renderer.render( scene, camera );
     }
 }
-
-// init();
-// animate();
