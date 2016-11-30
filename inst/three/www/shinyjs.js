@@ -12,11 +12,15 @@ shinyjs.reinitialize = function(){
   effect = new THREE.AnaglyphEffect( renderer ); // for anaglyph effect
   effect.setSize( width, height ); // for anaglyph effect
 
-  // DIFFERENT
-  graphNode = document.getElementById('graph');
-  parentNode = graphNode.parentNode;
-  parentNode.replaceChild(container, graphNode)
-  // END difference
+  if (document.getElementById('content').hasChildNodes() == true){
+    console.log("replace");
+    graphNode = document.getElementById('graph');
+    parentNode = graphNode.parentNode;
+    parentNode.replaceChild(container, graphNode)
+  } else {
+    console.log("first take")
+    document.getElementById('content').appendChild( container );
+  }
 }
 
 

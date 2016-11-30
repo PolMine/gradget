@@ -19,9 +19,6 @@ Shiny.addCustomMessageHandler("passCallibrationX", function(calibrateX) {calibra
 var calibrationY = 5;
 Shiny.addCustomMessageHandler("passCallibrationY", function(calibrateY) {calibrationY = calibrateY;});
 
-var container = document.createElement( 'div' );
-container.setAttribute('id', 'graph');
-document.getElementById('content').appendChild( container );
 
 function createScene(){
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
@@ -110,8 +107,17 @@ function init(){
   effect = new THREE.AnaglyphEffect( renderer ); // for anaglyph effect
   effect.setSize( width, height ); // for anaglyph effect
   
-  document.getElementById('content').appendChild( container );
   
+  if (document.getElementById('content').hasChildNodes() == true){
+    console.log("replace");
+    graphNode = document.getElementById('graph');
+    parentNode = graphNode.parentNode;
+    parentNode.replaceChild(container, graphNode)
+  } else {
+    console.log("first take")
+    document.getElementById('content').appendChild( container );
+  }
+
 }
             
 function onWindowResize() {
