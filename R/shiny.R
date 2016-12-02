@@ -45,6 +45,73 @@ settingsGraphUiInput <- function(){
 graphUiOutput <- function(){
 }
 
+.cooccurrencesToIgraph <- function(input, output, session){
+  print(input$graph_object)
+  
+  coocObject <- get(input$graph_object, envir = .GlobalEnv)
+  print(dim(coocObject))
+  
+  if (TRUE){
+    coocObject@stat <- coocObject@stat[!a_word %in% polmineR::punctuation][!b_word %in% polmineR::punctuation]
+    coocObject@stat <- coocObject@stat[!a_word %in% tm::stopwords("de")][!b_word %in% tm::stopwords("de")]
+  }
+  
+  message("... trimming object / applying max_rank")
+  maxValue <- as.integer(input$graph_max_rank)
+  if (input$graph_reference != ""){
+    comparison <- polmineR::compare(
+      x = coocObject, y = get(input$graph_reference, envir = .GlobalEnv)
+    )
+    comparison@stat <- comparison@stat[which(comparison[["rank_ll"]] <= maxValue)]
+    coocObject <- trim(coocObject, by = comparison)
+    print(dim(coocObject))
+  } else {
+    coocObject@stat <- coocObject@stat[which(coocObject[["rank_ll"]] <= maxValue)]
+  }
+  
+  
+  message("... as igraph")
+  igraphObject <- asIgraph(coocObject)
+  
+  if (input$graph_cutoff >= 2){
+    message("... removing components")
+    comps <- components(igraphObject)
+    verticesToDrop <- which(comps[[1]] %in% (1:max(comps[[2]]))[which(comps[[2]] <= input$graph_cutoff)])
+    igraphObject <- delete_vertices(igraphObject, verticesToDrop)
+  }
+  
+  message("... community detection")
+  igraphObject <- enrich(igraphObject, community = list(method = "fastgreedy", weights=FALSE))
+  
+  message("... layout / coordinates")
+  igraphObject <- enrich(igraphObject, layout = "kamada.kawai", dim = 3)
+  igraphObject
+}
+
+.asDOMElement <- function(x){
+  x <- three::rescale(x, -600, 600)
+  y <- XML::saveXML(as.svg(x, width = 800, height = 800)@xml)
+  y <- gsub("^.*?(<svg.*?</svg>).*$", "\\1", y)
+  y <- gsub("(<svg.*?>)", paste("\\1<script>", jsFunctionClick, "</script>", sep = ""), y)
+  y
+}
+
+# turn igraph object into the json that is needed by THREE
+# x needs to be an igraph object
+.igraphToJson <- function(x){
+
+  message("... three dimensions")
+  threeObject <- polmineR.graph::as.three(
+    x, type = "anaglyph", bgColor = "0xcccccc",
+    fontSize = 12, fontColor = "0x000000", nodeSize = 4,
+    edgeColor = "0xeeeeee", edgeWidth = 3, fontOffset = c(x = 10, y = 10, z = 10)
+  )
+  
+  message("... creating json")
+  newJson <- as(threeObject, "json")
+  newJson
+}
+
 #' @export graphServer
 #' @export graphServer
 graphServer <- function(input, output, session){
@@ -53,53 +120,11 @@ graphServer <- function(input, output, session){
     input$graph_dim,
     {
       if (input$graph_dim == "2d"){
-        print("switching to 2d mode")
         
-        coocObject <- get(input$graph_object, envir = .GlobalEnv)
-
-        if (TRUE){
-          coocObject@stat <- coocObject@stat[!a_word %in% polmineR::punctuation][!b_word %in% polmineR::punctuation]
-          coocObject@stat <- coocObject@stat[!a_word %in% tm::stopwords("de")][!b_word %in% tm::stopwords("de")]
-        }
+        igraphObject <- get("igraphObject", envir = get(".polmineR_graph_cache", envir = .GlobalEnv))
+        domElement <- .asDOMElement(igraphObject)
+        js$twoDimGraph(domElement)
         
-        message("... trimming object / applying max_rank")
-        maxValue <- as.integer(input$graph_max_rank)
-        if (input$graph_reference != ""){
-          comparison <- polmineR::compare(
-            x = coocObject, y = get(input$graph_reference, envir = .GlobalEnv)
-          )
-          comparison@stat <- comparison@stat[which(comparison[["rank_ll"]] <= maxValue)]
-          coocObject <- trim(coocObject, by = comparison)
-          print(dim(coocObject))
-        } else {
-          coocObject@stat <- coocObject@stat[which(coocObject[["rank_ll"]] <= maxValue)]
-        }
-        
-
-        message("... as igraph")
-        igraphObject <- asIgraph(coocObject)
-        
-        if (input$graph_cutoff >= 2){
-          message("... removing components")
-          comps <- components(igraphObject)
-          verticesToDrop <- which(comps[[1]] %in% (1:max(comps[[2]]))[which(comps[[2]] <= input$graph_cutoff)])
-          igraphObject <- delete_vertices(igraphObject, verticesToDrop)
-        }
-        
-        message("... community detection")
-        igraphObject <- enrich(igraphObject, community = list(method = "fastgreedy", weights=FALSE))
-        
-        message("... layout / coordinates")
-        igraphObject <- enrich(igraphObject, layout = "kamada.kawai", dim = 3)
-        
-        message("... rescaling")
-        igraphObject <- three::rescale(igraphObject, -600, 600)
-        
-        foo <- XML::saveXML(as.svg(igraphObject, width = 800, height = 800)@xml)
-        foo <- gsub("^.*?(<svg.*?</svg>).*$", "\\1", foo)
-        foo <- gsub("(<svg.*?>)", paste("\\1<script>", jsFunctionClick, "</script>", sep = ""), foo)
-        
-        js$twoDimGraph(foo)
       }
     }
   )
@@ -109,71 +134,25 @@ graphServer <- function(input, output, session){
     {
       if (input$graph_go > 0){
         
-        coocObject <- get(input$graph_object, envir = .GlobalEnv)
+        message("... generating new object")
+        igraphObject <- .cooccurrencesToIgraph(input, output, session)
         
-        if (TRUE){
-          message("... applying stopwords")
-          coocObject@stat <- coocObject@stat[!a_word %in% polmineR::punctuation][!b_word %in% polmineR::punctuation]
-          coocObject@stat <- coocObject@stat[!a_word %in% tm::stopwords("de")][!b_word %in% tm::stopwords("de")]
-        }
-        
-        
-        message("... trimming object / applying max_rank")
-        maxValue <- as.integer(input$graph_max_rank)
-        if (input$graph_reference != ""){
-          comparison <- polmineR::compare(
-            x = coocObject, y = get(input$graph_reference, envir = .GlobalEnv)
-          )
-          comparison@stat <- comparison@stat[which(comparison[["rank_ll"]] <= maxValue)]
-          coocObject <- trim(coocObject, by = comparison)
-          print(dim(coocObject))
-        } else {
-          coocObject@stat <- coocObject@stat[which(coocObject[["rank_ll"]] <= maxValue)]
-        }
-        
-        message("... as igraph")
-        igraphObject <- asIgraph(coocObject)
-        
-        if (input$graph_cutoff >= 2){
-          message("... removing components")
-          comps <- components(igraphObject)
-          verticesToDrop <- which(comps[[1]] %in% (1:max(comps[[2]]))[which(comps[[2]] <= input$graph_cutoff)])
-          igraphObject <- delete_vertices(igraphObject, verticesToDrop)
-        }
-        
-        message("... community detection")
-        igraphObject <- enrich(igraphObject, community = list(method = "fastgreedy", weights=FALSE))
-        
-        message("... layout / coordinates")
-        igraphObject <- enrich(igraphObject, layout = "kamada.kawai", dim = 3)
-        
-        
+        # assign to cache, so that object will be available for switching 2d/3d mode
+        message("... assign to .GlobalEnv")
+        assign("igraphObject", igraphObject, envir = get(".polmineR_graph_cache", envir = .GlobalEnv))
+
         if (input$graph_dim == "2d"){
           
           message("... rescaling")
           igraphObject <- three::rescale(igraphObject, -600, 600)
-          
-          foo <- XML::saveXML(as.svg(igraphObject, width = 800, height = 800)@xml)
-          foo <- gsub("^.*?(<svg.*?</svg>).*$", "\\1", foo)
-          foo <- gsub("(<svg.*?>)", paste("\\1<script>", jsFunctionClick, "</script>", sep = ""), foo)
-          
-          js$twoDimGraph(foo)
-          
+          domElement <- .asDOMElement(igraphObject)
+          js$twoDimGraph(domElement)
           
         } else if (input$graph_dim == "3d"){
-          message("... rescaling")
+          
+          message("... 3d json")
           igraphObject <- three::rescale(igraphObject, -400, 400)
-          
-          message("... three dimensions")
-          threeObject <- polmineR.graph::as.three(
-            igraphObject, type = "anaglyph", bgColor = "0xcccccc",
-            fontSize = 12, fontColor = "0x000000", nodeSize = 4,
-            edgeColor = "0xeeeeee", edgeWidth = 3, fontOffset = c(x = 10, y = 10, z = 10)
-          )
-          
-          message("... creating json")
-          newJson <- as(threeObject, "json")
-          
+          newJson <- .igraphToJson(igraphObject)
           message("... transferring new values")
           js$reloadData(newJson)
           js$reinitialize()

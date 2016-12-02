@@ -33,6 +33,7 @@ i <- 0
 coocObject <- get(getObjects("cooccurrences", envir = .GlobalEnv)[1])
 coocObject@stat <- coocObject@stat[which(coocObject[["rank_ll"]] <= 250)]
 igraphObject <- asIgraph(coocObject)
+assign("igraphObject", igraphObject, envir = get(".polmineR_graph_cache", envir = .GlobalEnv))
 igraphObject <- enrich(igraphObject, community = list(method = "fastgreedy", weights=FALSE))
 igraphObject <- enrich(igraphObject, layout = "kamada.kawai", dim = 3)
 igraphObject <- three::rescale(igraphObject, -400, 400)
