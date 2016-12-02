@@ -43,6 +43,7 @@ function createGraph(scene){
 		var mesh = new THREE.Mesh(geometry, material);
 		mesh.position.set(sphereCoords.x[i], sphereCoords.y[i], sphereCoords.z[i]);
 		mesh.name = ''+i;
+		mesh.label = text[i];
 		scene.add(mesh);
 	}
 	
@@ -54,6 +55,8 @@ function createGraph(scene){
 		  new THREE.Vector3( linesTo.x[i], linesTo.y[i], linesTo.z[i] )
 	  );
 	  var line = new THREE.Line( geometry, material );
+		line.from = edgeData["a"][i];
+		line.to = edgeData["b"][i];
 		scene.add(line);
 	}
 	
@@ -73,12 +76,14 @@ function createGraph(scene){
 		var sp = new THREE.Sprite(mat);
 		sp.scale.set( 100, 100, 10 );
 		sp.position.set(textCoords.x[i] - textOffset.x, textCoords.y[i] - textOffset.y, textCoords.z[i] - textOffset.y);
+		sp.label = text[i];
 		scene.add(sp);
 	}
 	
 	return scene;
 
 }
+
 
 function createContainer(){
   var container = document.createElement( 'div' );
@@ -92,6 +97,7 @@ function createContainer(){
   
   return container;
 }
+
 
 function init(){
   
@@ -132,6 +138,7 @@ function onKeyboardInput( event ){
   }
   if (event.keyCode === 32){
     spacehits ++;
+    console.log(spacehits);
     Shiny.onInputChange('graph_space_pressed', spacehits);
   }
   event.preventDefault();
@@ -172,17 +179,10 @@ function render(){
 			for (var i = 0; i < intersects.length; i++){
         if (intersects[i].object instanceof THREE.Sprite == false){
           if ( intersects[i].object instanceof THREE.Line ) {
-            
-            j = eval(intersects[i].object.id) - 4 - sphereCoords.x.length;
-            Shiny.onInputChange('graph_edge_selected_a', edgeData["a"][j]);
-            Shiny.onInputChange('graph_edge_selected_b', edgeData["b"][j]);
-
+            Shiny.onInputChange('graph_edge_selected_a', intersects[i].object.from);
+            Shiny.onInputChange('graph_edge_selected_b', intersects[i].object.to);
 		      } else if ( intersects[i].object instanceof THREE.Mesh ) {
-            
-            j = eval(intersects[i].object.id) - 5;
-            var vertexInfo = text[j + 1];
-            Shiny.onInputChange('graph_node_selected', vertexInfo);
-            
+            Shiny.onInputChange('graph_node_selected', intersects[i].object.label);
 		      }
           MATCH = intersects[i].object
           break

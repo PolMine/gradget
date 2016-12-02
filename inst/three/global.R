@@ -46,6 +46,7 @@ jsonTmpFile <- tempfile()
 cat(newJson, file = jsonTmpFile)
 
 
+# js functions that will be included in SVG
 jsFunctionClick <- "
   
   function edgeClick(x, y){

@@ -56,20 +56,26 @@ graphServer <- function(input, output, session){
         print("switching to 2d mode")
         
         coocObject <- get(input$graph_object, envir = .GlobalEnv)
-        print(dim(coocObject))
-        print(is(coocObject))
-        
-        if (input$graph_reference != ""){
-          referenceObject <- get(input$graph_reference, envir = .GlobalEnv)
-          compared <- compare(coocObject,reference)
+
+        if (TRUE){
+          coocObject@stat <- coocObject@stat[!a_word %in% polmineR::punctuation][!b_word %in% polmineR::punctuation]
+          coocObject@stat <- coocObject@stat[!a_word %in% tm::stopwords("de")][!b_word %in% tm::stopwords("de")]
         }
-        
         
         message("... trimming object / applying max_rank")
         maxValue <- as.integer(input$graph_max_rank)
-        print(maxValue)
-        coocObject@stat <- coocObject@stat[which(coocObject[["rank_ll"]] <= maxValue)]
+        if (input$graph_reference != ""){
+          comparison <- polmineR::compare(
+            x = coocObject, y = get(input$graph_reference, envir = .GlobalEnv)
+          )
+          comparison@stat <- comparison@stat[which(comparison[["rank_ll"]] <= maxValue)]
+          coocObject <- trim(coocObject, by = comparison)
+          print(dim(coocObject))
+        } else {
+          coocObject@stat <- coocObject@stat[which(coocObject[["rank_ll"]] <= maxValue)]
+        }
         
+
         message("... as igraph")
         igraphObject <- asIgraph(coocObject)
         
@@ -105,9 +111,25 @@ graphServer <- function(input, output, session){
         
         coocObject <- get(input$graph_object, envir = .GlobalEnv)
         
+        if (TRUE){
+          message("... applying stopwords")
+          coocObject@stat <- coocObject@stat[!a_word %in% polmineR::punctuation][!b_word %in% polmineR::punctuation]
+          coocObject@stat <- coocObject@stat[!a_word %in% tm::stopwords("de")][!b_word %in% tm::stopwords("de")]
+        }
+        
+        
         message("... trimming object / applying max_rank")
         maxValue <- as.integer(input$graph_max_rank)
-        coocObject@stat <- coocObject@stat[which(coocObject[["rank_ll"]] <= maxValue)]
+        if (input$graph_reference != ""){
+          comparison <- polmineR::compare(
+            x = coocObject, y = get(input$graph_reference, envir = .GlobalEnv)
+          )
+          comparison@stat <- comparison@stat[which(comparison[["rank_ll"]] <= maxValue)]
+          coocObject <- trim(coocObject, by = comparison)
+          print(dim(coocObject))
+        } else {
+          coocObject@stat <- coocObject@stat[which(coocObject[["rank_ll"]] <= maxValue)]
+        }
         
         message("... as igraph")
         igraphObject <- asIgraph(coocObject)
@@ -144,7 +166,8 @@ graphServer <- function(input, output, session){
           
           message("... three dimensions")
           threeObject <- polmineR.graph::as.three(
-            igraphObject, type = "anaglyph", bgColor = "0xcccccc", fontSize = 12, fontColor = "0x000000", nodeSize = 4,
+            igraphObject, type = "anaglyph", bgColor = "0xcccccc",
+            fontSize = 12, fontColor = "0x000000", nodeSize = 4,
             edgeColor = "0xeeeeee", edgeWidth = 3, fontOffset = c(x = 10, y = 10, z = 10)
           )
           
