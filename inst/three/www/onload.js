@@ -9,9 +9,11 @@ var radius = 100, theta = 0;
 var spacehits = 0;
 
 // defined for anaglyph effect
-var anaglyphMode = true;
 var width = window.innerWidth || 2;
 var height = window.innerHeight || 2;
+
+var anaglyphMode = "false";
+Shiny.addCustomMessageHandler("setAnaglyphMode", function(anaglyphModeNew) {anaglyphMode = anaglyphModeNew; console.log(anaglyphModeNew);});
 
 var calibrationX = 5;
 Shiny.addCustomMessageHandler("passCallibrationX", function(calibrateX) {calibrationX = calibrateX;});

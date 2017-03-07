@@ -2,6 +2,10 @@ shinyjs.reinitialize = function(){
   init()
 }
 
+shinyjs.reanimate = function(){
+  animate()
+}
+
 shinyjs.reloadData = function(x){
   console.error("resetting values")
   eval(x[0])

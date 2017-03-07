@@ -92,6 +92,13 @@ graphUiOutput <- function(){
   x <- three::rescale(x, -600, 600)
   y <- XML::saveXML(as.svg(x, width = 800, height = 800)@xml)
   y <- gsub("^.*?(<svg.*?</svg>).*$", "\\1", y)
+  
+  jsFunctionClick <- paste(scan(
+    file = system.file("js", "onclick_functions_2d.js", package = "polmineR.graph"),
+    what = character(),
+    sep = "\n", quiet = TRUE
+  ), collapse = "\n")
+  
   y <- gsub("(<svg.*?>)", paste("\\1<script>", jsFunctionClick, "</script>", sep = ""), y)
   y
 }
@@ -132,7 +139,7 @@ graphServer <- function(input, output, session){
   observeEvent(
     input$graph_go,
     {
-      if (input$graph_go > 0){
+      # if (input$graph_go > 0){
         
         message("... generating new object")
         igraphObject <- .cooccurrencesToIgraph(input, output, session)
@@ -156,9 +163,10 @@ graphServer <- function(input, output, session){
           message("... transferring new values")
           js$reloadData(newJson)
           js$reinitialize()
+          js$reanimate()
         
         }
-      }
+      # }
     }
   )
   
