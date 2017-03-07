@@ -1,3 +1,14 @@
+#' Get cooccurrences.
+#' 
+#' @field partition partition object
+#' @field pAttribute character
+#' @field drop character vector
+#' @field method statistical test ("ll")
+#' @field window integer
+#' @field verbose logical
+#' @field contextSizes data.table
+#' @field dt data.table
+#' 
 #' @importFrom data.table data.table melt.data.table
 #' @examples 
 #' \dontrun{
@@ -7,18 +18,17 @@
 #' Merkel$getCounts()
 #' Merkel$trim(drop = termsToDrop)
 #' Merkel$getStats()
+#' merkelCooc <- Merkel$as.S4()
 #' tcm <- Merkel$makeTermCooccurrenceMatrix()
 #' 
-#' bt13_partition <- partition("PLPRBT", speaker_lp = "13", pAttribute = "word")
-#' termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(.Object, pAttribute = "word"))))
-#' system.time(bt13 <- cooccurrences2(bt13_partition, drop = termsToDrop, tcm = FALSE, method = "ll"))
-#' 
-#' kohl_partition <- partition("PLPRBT", speaker_name = "Helmut Kohl", speaker_type = "speech", speaker_lp = "13", pAttribute = "word")
-#' termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(kohl_partition, pAttribute = "word"))))
-#' kohl <- cooccurrences2(kohl_partition, drop = termsToDrop, tcm = FALSE, method = "ll")
+#' bt17_partition <- partition("PLPRBT", speaker_lp = "13", pAttribute = "word")
+#' termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(bt17_partition, pAttribute = "word"))))
+#' BT17 <- Cooccurrences$new(partition = bt17_partition, pAttribute = "word", window = 5L, drop = termsToDrop)
+#' BT17$getStats()
+#' bt17cooc <- BT17$as.S4()
 #'
-#' kohl_compared <- compare(kohl, bt13, included = TRUE)
-#' kohl_trimmed <- trim(kohl, by = subset(kohl_compared, rank_ll <= 250))
+#' merkel_compared <- compare(Merkel$as.S4(), BT17$as.S4(), included = TRUE)
+#' merkel_trimmed <- trim(kohl, by = subset(kohl_compared, rank_ll <= 250))
 #' 
 #' library(polmineR.graph)
 #' library(igraph)
@@ -34,7 +44,8 @@
 #' }
 #' @import polmineR
 #' @import data.table
-#' @import from slam simple_triplet_matrix
+#' @importFrom slam simple_triplet_matrix
+#' @export Cooccurrences
 Cooccurrences <- setRefClass(
   
   Class = "Cooccurrences",

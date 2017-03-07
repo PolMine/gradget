@@ -27,4 +27,11 @@ assign(
   envir = get(".polmineR_shiny_cache", envir = .GlobalEnv)
 )
 
+jsFunctionClick <- paste(scan(
+  file = system.file("js", "onclick_functions_2d.js", package = "polmineR.graph"),
+  what = character(),
+  sep = "\n", quiet = TRUE
+), collapse = "\n")
+
+
 i <- 0

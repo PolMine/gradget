@@ -21,8 +21,18 @@ To start FastRWeb: sudo /var/FastRWeb/code/start
 library(polmineR)
 library(polmineR.graph)
 library(three)
-bt17merkel <- partition("PLPRBT", speaker_lp = "17", speaker_name = "Angela Merkel", speaker_type = "speech", pAttribute="word")
-bt17merkelColl <- cooccurrences(bt17merkel, pAttribute = "word", mc = TRUE)
+
+bt17merkel <- partition(
+ "PLPRBT", speaker_lp = "17", speaker_name = "Angela Merkel",
+ speaker_type = "speech", pAttribute = "word"
+)
+bt17merkelCooc <- cooccurrences(bt17merkel, keep = NULL, pAttribute = "word", mc = TRUE)
+
+bt17 <- partition("PLPRBT", speaker_lp = "17", speaker_type = "speech", pAttribute = "word")
+bt17cooc <- cooccurrences(bt17, keep = NULL, pAttribute = "word", mc = TRUE, progress = TRUE)
+
+C <- compare(bt17merkelCooc, bt17cooc)
+
 bt17merkelCollTrimmed <- subset(bt17merkelColl, rank_ll <= 250)
 iMerkel <- asIgraph(bt17merkelCollTrimmed)
 iMerkelComm <- enrich(iMerkel, community=list(method="fastgreedy", weights=FALSE))
