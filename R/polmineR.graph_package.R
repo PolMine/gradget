@@ -44,6 +44,8 @@
 NULL 
 
 setOldClass("igraph")
+setOldClass("Cooccurrences")
+
 
 #' @export polmineR.graph
 #' @rdname polmineR.graph
