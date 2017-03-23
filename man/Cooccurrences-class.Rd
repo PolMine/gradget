@@ -5,8 +5,24 @@
 \alias{Cooccurrences}
 \alias{Cooccurrences-class}
 \title{Get cooccurrences.}
+\arguments{
+\item{keep}{character vector}
+
+\item{returnXML}{logical, whether to return XML}
+
+\item{verbose}{whether to be talkative}
+
+\item{x}{a svg object}
+
+\item{...}{parameters that will be passed}
+}
 \description{
-Get cooccurrences.
+Reference class to generate and manage cooccurrence statistics.
+}
+\details{
+To reduce the size of the data.table with the cooccurrence statistics, the 
+parameters \code{keep} and \code{drop} provide tokens with tokens that will be kept and
+dropped, respectively. The parameters are used by the \code{trim} method.
 }
 \section{Fields}{
 
@@ -15,7 +31,9 @@ Get cooccurrences.
 
 \item{\code{pAttribute}}{character}
 
-\item{\code{drop}}{character vector}
+\item{\code{keep}}{list of named character vectors, names are p-attributes}
+
+\item{\code{drop}}{list of named character vectors, names are p-attributes}
 
 \item{\code{method}}{statistical test ("ll")}
 
@@ -27,38 +45,69 @@ Get cooccurrences.
 
 \item{\code{dt}}{data.table}
 }}
+\section{Methods}{
+
+\describe{
+\item{\code{as.S4()}}{Turns a Cooccurrence object (reference class) into an S4 class cooccurrences object as defined in the
+polmineR base package.}
+
+\item{\code{count()}}{Count the cooccurrence of terms. The field 'dt' is filled with a data.table with the
+columns 'a_id', 'b_id' and 'count_ab'.}
+
+\item{\code{initialize(corpus = NULL, partition = NULL, pAttribute = "word",
+  window = 5L, verbose = TRUE, drop = c(polmineR::punctuation,
+  tm::stopwords("de")), keep = NULL)}}{Initialize a Cooccurrences class object.}
+
+\item{\code{makeTermCooccurrenceMatrix()}}{Returns a simple triplet matrix based on the counts of term cooccurrences. If counts are
+not yet present, that is done first.}
+
+\item{\code{maths(method = "ll")}}{Based on counts of term cooccurrences, the data.table is enriched and statistical operations
+- the maths - are performed to get the significance of cooccurrences.}
+
+\item{\code{trim(action, by.id)}}{Trim the overall list of cooccurrences by dropping terms that are not frequent. Recommended
+to speed up computation of statistical test values.}
+}}
 \examples{
 \dontrun{
-merkel_partition <- partition("PLPRBT", speaker_name = "Angela Merkel", speaker_lp = "17", speaker_type = "speech", pAttribute = "word")
-termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(merkel_partition, pAttribute = "word"))))
-Merkel <- Cooccurrences$new(partition = merkel_partition, pAttribute = "word", window = 5L, drop = termsToDrop)
-Merkel$getCounts()
-Merkel$trim(drop = termsToDrop)
-Merkel$getStats()
-tcm <- Merkel$makeTermCooccurrenceMatrix()
 
-bt13_partition <- partition("PLPRBT", speaker_lp = "13", pAttribute = "word")
-termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(.Object, pAttribute = "word"))))
-system.time(bt13 <- cooccurrences2(bt13_partition, drop = termsToDrop, tcm = FALSE, method = "ll"))
+standard workflow:
+------------------
 
-kohl_partition <- partition("PLPRBT", speaker_name = "Helmut Kohl", speaker_type = "speech", speaker_lp = "13", pAttribute = "word")
-termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(kohl_partition, pAttribute = "word"))))
-kohl <- cooccurrences2(kohl_partition, drop = termsToDrop, tcm = FALSE, method = "ll")
-
-kohl_compared <- compare(kohl, bt13, included = TRUE)
-kohl_trimmed <- trim(kohl, by = subset(kohl_compared, rank_ll <= 250))
-
+library(polmineR)
 library(polmineR.graph)
-library(igraph)
-K <- asIgraph(kohl_trimmed)
-K <- enrich(K, community = list(method = "fastgreedy", weights=FALSE))
-K <- enrich(K, layout = "kamada.kawai", dim = 3)
-K <- three::rescale(K, -400, 400)
-t <- as.three(K, bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
-t <- as.three(K, type="anaglyph", bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
+
+merkel2008 <- partition("PLPRBT", speaker_name = "Angela Merkel", speaker_year = "2008", speaker_type = "speech", pAttribute = "word")
+termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(merkel2008, pAttribute = "word"))))
+
+Merkel <- Cooccurrences$new(partition = merkel2008, pAttribute = "word", window = 5L, drop = termsToDrop)
+Merkel$count()
+Merkel$trim(action = "drop", by.id = TRUE)
+Merkel$maths()
+
+bt2008 <- partition("PLPRBT", speaker_year = "2008", pAttribute = "word")
+termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(bt2008, pAttribute = "word"))))
+BT2008 <- Cooccurrences$new(partition = bt2008, pAttribute = "word", window = 5L, drop = termsToDrop)
+BT2008$count()
+BT2008$trim(action = "drop", by.id = TRUE)
+BT2008$maths()
+
+Merkel$featureSelection(reference = BT2008, included = TRUE)
+
+G <- Merkel$as.igraph(as.undirected = TRUE)
+G <- addCommunities(G, method = "fastgreedy", weights = FALSE)
+G <- addCoordinates(G, layout = "kamada.kawai", dim = 3)
+G <- rescale(G, -1000, 1000)
+Y <- as.svg(G)
+Y
+
+T <- as.three(G, bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
+T <- as.three(G, type="anaglyph", bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
 toView <- three:::store(t, directory="/Users/blaette/Lab/tmp/three")
 shiny::runApp("/Users/blaette/Lab/github/polmineR.graph/inst/three")
 browseURL(toView["tmpFileJs"])
+
+merkelSvg <- as.svg(iMerkelComm, width=1000, height=1000)
+merkelSvg
 }
 }
 

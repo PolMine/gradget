@@ -1,7 +1,3 @@
-#' @include generics.R igraph_methods.R 
-NULL
-
-
 #' Get cooccurrences.
 #' 
 #' Reference class to generate and manage cooccurrence statistics.
@@ -21,20 +17,6 @@ NULL
 #' @field dt data.table
 #' 
 #' @param keep character vector 
-#' @param edgeAttributes attributes of edges to maintain
-#' @param verticeAttributes attributes of vertices to maintain
-#' @param as.undirected logical, whether to turn object into directed graph
-#' #' @param object the collocation object
-#' @param layout either "kamada.kawai" or "fruchterman.reingold"
-#' @param width the width of the svg
-#' @param height the height of the svg
-#' @param margin margins of the svg
-#' @param fontSize font size of the vertex labels
-#' @param textOffset where to put text
-#' @param edgeAttributes attributes of edges for tooltips
-#' @param verticeAttributes attributes of attributes for tooltips
-#' @param pandocTab logical, whether to format tables with pandoc
-#' @param mc logical, whether to use multicore
 #' @param returnXML logical, whether to return XML
 #' @param verbose whether to be talkative
 #' @param x a svg object
@@ -71,23 +53,21 @@ NULL
 #' BT2008$trim(action = "drop", by.id = TRUE)
 #' BT2008$maths()
 #' 
-#' Merkel$featureSelection(reference = BT2008, included = TRUE)
+#' Merkel2 <- copy(Merkel)
+#' Merkel2$featureSelection(reference = BT2008, included = TRUE)
 #' 
 #' G <- Merkel$as.igraph(as.undirected = TRUE)
-#' G <- enrich(G, community = list(method = "fastgreedy", weights = FALSE))
-#' G <- enrich(G, layout = "kamada.kawai", dim = 3)
-#' G <- three::rescale(G, -1000, 1000)
-#' Y <- as.svg(G)
-#' Y
+#' G <- addCommunities(G, method = "fastgreedy", weights = FALSE)
+#' G <- addCoordinates(G, layout = "kamada.kawai", dim = 3)
+#' G <- rescale(G, -1000, 1000)
 #' 
-#' T <- as.three(G, bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
-#' T <- as.three(G, type="anaglyph", bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
-#' toView <- three:::store(t, directory="/Users/blaette/Lab/tmp/three")
-#' shiny::runApp("/Users/blaette/Lab/github/polmineR.graph/inst/three")
-#' browseURL(toView["tmpFileJs"])
-#' 
-#' merkelSvg <- as.svg(iMerkelComm, width=1000, height=1000)
-#' merkelSvg
+#' Y <- SVG(G)
+#' Y$make()
+#' Y$plot()
+#' Y$width = 750
+#' Y$height = 750
+#' Y$make()
+#' Y$browse()
 #' }
 #' @import polmineR
 #' @import data.table
@@ -248,8 +228,6 @@ Cooccurrences <- setRefClass(
         .self$contextSizes <- contextDT
         
         # if (verbose == TRUE) message("... applying filter")
-        
-        # .self$trim()
         
         if (verbose) message("... counting co-occurrences")
         TF <- DT[, .N, by = c(eval(c(aColsId, bColsId))), with = TRUE]
@@ -463,18 +441,18 @@ Cooccurrences <- setRefClass(
     
     
     featureSelection = function(reference, included = FALSE, method = "ll", verbose = TRUE, n = 250){
-      DT <- getFeatureSelectionStats(reference = reference, included = included, method = method, verbose = verbose)
+      DT <- .self$getFeatureSelectionStats(reference = reference, included = included, method = method, verbose = verbose)
       keys <- unlist(lapply(c("a", "b"), function(what) paste(what, .self$pAttribute, sep = "_")))
       rowsToKeep <- c(keys, "rank_ll")
       DT <- DT[, rowsToKeep, with = FALSE]
       DT[, keep := ifelse(rank_ll <= n, TRUE, FALSE)]
       DT[, rank_ll := NULL]
+      DT2 <- DT[DT[["keep"]] == TRUE]
       
       setkeyv(.self$dt, keys)
-      setkeyv(DT, keys)
-      .self$dt <- DT[.self$dt]
-      .self$dt <- .self$dt[keep == TRUE]
-      .self$dt[, keep := NULL]
+      setkeyv(DT2, keys)
+      Y <- .self$dt[DT2]
+      .self$dt <- Y
     },
     
     minimize = function(){

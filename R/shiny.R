@@ -4,19 +4,20 @@
 #' @param output output
 #' @param session session
 #' @importFrom DT renderDataTable dataTableOutput
+#' @import shiny
 #' @export graphUiInput
 graphUiInput <- function(){
   list(
     go = actionButton("graph_go", label="", icon = icon("play", lib = "glyphicon")),
     br(),
     br(),
-    object = selectInput("graph_object", label = "object", choices = getObjects("cooccurrences", envir = .GlobalEnv)),
-    reference = selectInput("graph_reference", label = "reference", choices = c("", getObjects("cooccurrences", envir = .GlobalEnv))),
+    object = selectInput("graph_object", label = "object", choices = getObjects("Cooccurrences", envir = .GlobalEnv)),
+    reference = selectInput("graph_reference", label = "reference", choices = c("", getObjects("Cooccurrences", envir = .GlobalEnv))),
     max_rank = sliderInput("graph_max_rank", label = "max. rank", min = 10, max = 1000, value = 200),
     dim = radioButtons("graph_dim", "dimensions", choices = c("2d", "3d"), selected = "3d", inline = TRUE),
     anaglyph = conditionalPanel(
       condition = 'input.graph_dim == "3d"',
-      radioButtons("graph_anaglyph_mode", "anaglyph", choices = c("true", "false"), selected = "true", inline = TRUE)
+      radioButtons("graph_anaglyph_mode", "anaglyph", choices = c("true", "false"), selected = "false", inline = TRUE)
     ),
     community = radioButtons("graph_communities", label = "communities", choices = c("TRUE", "FALSE"), selected = "TRUE", inline = TRUE),
     layout = selectInput("graph_layout", label = "layout", choices = c("kamada.kawai")),
@@ -46,32 +47,28 @@ graphUiOutput <- function(){
 }
 
 .cooccurrencesToIgraph <- function(input, output, session){
-  print(input$graph_object)
+  print(input$graph_object) # this is a Cooccurrences object!
   
-  coocObject <- get(input$graph_object, envir = .GlobalEnv)
+  coocObject <- get(input$graph_object, envir = .GlobalEnv)$copy()
   print(dim(coocObject))
   
   if (TRUE){
-    coocObject@stat <- coocObject@stat[!a_word %in% polmineR::punctuation][!b_word %in% polmineR::punctuation]
-    coocObject@stat <- coocObject@stat[!a_word %in% tm::stopwords("de")][!b_word %in% tm::stopwords("de")]
+    coocObject$drop <- c(polmineR::punctuation, unlist(noise(pAttributes(coocObject, pAttribute = "word"))))
+    coocObject$trim(action = "drop", by.id = FALSE)
   }
   
   message("... trimming object / applying max_rank")
   maxValue <- as.integer(input$graph_max_rank)
   if (input$graph_reference != ""){
-    comparison <- polmineR::compare(
-      x = coocObject, y = get(input$graph_reference, envir = .GlobalEnv)
-    )
-    comparison@stat <- comparison@stat[which(comparison[["rank_ll"]] <= maxValue)]
-    coocObject <- trim(coocObject, by = comparison)
+    coocObject$featureSelection(reference = get(input$graph_reference, envir = .GlobalEnv), included = TRUE, n = maxValue)
     print(dim(coocObject))
   } else {
-    coocObject@stat <- coocObject@stat[which(coocObject[["rank_ll"]] <= maxValue)]
+    coocObject$dt <- coocObject$dt[1:maxValue]
   }
   
   
   message("... as igraph")
-  igraphObject <- asIgraph(coocObject)
+  igraphObject <- coocObject$as.igraph()
   
   if (input$graph_cutoff >= 2){
     message("... removing components")
@@ -81,16 +78,18 @@ graphUiOutput <- function(){
   }
   
   message("... community detection")
-  igraphObject <- enrich(igraphObject, community = list(method = "fastgreedy", weights=FALSE))
+  igraphObject <- addCommunities(igraphObject, method = "fastgreedy", weights = FALSE)
   
   message("... layout / coordinates")
-  igraphObject <- enrich(igraphObject, layout = "kamada.kawai", dim = 3)
+  igraphObject <- addCoordinates(igraphObject, layout = "kamada.kawai", dim = 3)
   igraphObject
 }
 
 .asDOMElement <- function(x){
-  x <- three::rescale(x, -600, 600)
-  y <- XML::saveXML(as.svg(x, width = 800, height = 800)@xml)
+  x <- rescale(x, -600, 600)
+  svg <- SVG$new(x)
+  svg$make(width = 800, height = 800)
+  y <- svg$xml
   y <- gsub("^.*?(<svg.*?</svg>).*$", "\\1", y)
   
   jsFunctionClick <- paste(scan(
@@ -108,14 +107,19 @@ graphUiOutput <- function(){
 .igraphToJson <- function(x){
 
   message("... three dimensions")
-  threeObject <- polmineR.graph::as.three(
-    x, type = "anaglyph", bgColor = "0xcccccc",
-    fontSize = 12, fontColor = "0x000000", nodeSize = 4,
-    edgeColor = "0xeeeeee", edgeWidth = 3, fontOffset = c(x = 10, y = 10, z = 10)
-  )
-  
+  T <- Three$new(x)
+  T$type = "anaglyph"
+  T$bgColor = "0xcccccc"
+  T$fontSize = 12
+  T$fontColor = "0x000000"
+  T$nodeSize = 4
+  T$edgeColor = "0xeeeeee"
+  T$edgeWidth = 3
+  T$fontOffset = c(x = 10, y = 10, z = 10)
+  T$make()
+
   message("... creating json")
-  newJson <- as(threeObject, "json")
+  newJson <- T$as.json()
   newJson
 }
 
@@ -151,14 +155,14 @@ graphServer <- function(input, output, session){
         if (input$graph_dim == "2d"){
           
           message("... rescaling")
-          igraphObject <- three::rescale(igraphObject, -600, 600)
+          igraphObject <- rescale(igraphObject, -600, 600)
           domElement <- .asDOMElement(igraphObject)
           js$twoDimGraph(domElement)
           
         } else if (input$graph_dim == "3d"){
           
           message("... 3d json")
-          igraphObject <- three::rescale(igraphObject, -400, 400)
+          igraphObject <- rescale(igraphObject, -400, 400)
           newJson <- .igraphToJson(igraphObject)
           message("... transferring new values")
           js$reloadData(newJson)
@@ -218,7 +222,7 @@ cooccurrencesUiInput <- function(){
   list(
     actionButton("cooccurrences_go", "", icon = icon("play", lib = "glyphicon")),
     br(), br(),
-    selectInput("cooccurrences_name", "name", choices = getObjects("cooccurrences", envir = .GlobalEnv)),
+    selectInput("cooccurrences_name", "name", choices = getObjects("Cooccurrences", envir = .GlobalEnv)),
     textInput("cooccurrences_a", "a", value = ""),
     textInput("cooccurrences_b", "b", value = ""),
     any = conditionalPanel(
@@ -247,7 +251,7 @@ cooccurrencesServer <- function(input, output, session){
     input$cooccurrences_time
     isolate({
       if (input$cooccurrences_name != ""){
-        df <- get(input$cooccurrences_name, envir = .GlobalEnv)@stat
+        df <- get(input$cooccurrences_name, envir = .GlobalEnv)$dt
         
         a <- input$cooccurrences_a
         Encoding(a) <- "unknown"
