@@ -1,8 +1,8 @@
 Package: polmineR.graph
 Type: Package
 Title: polmineR.graph
-Version: 0.2.1
-Date: 2017-03-14
+Version: 0.2.2
+Date: 2017-03-31
 Author: Andreas Blaette
 Maintainer: Andreas Blaette <andreas.blaette@uni-due.de>
 Depends:
@@ -21,15 +21,13 @@ Imports:
     slam,
     DT,
     data.table,
-    tm,
     colourpicker
 Suggests:
     knitr
 VignetteBuilder: knitr
 LazyData: yes
-Description: Plugin for the polmineR-package
-    shiny
-License: CC BY-NC-SA 3.0 | file LICENSE
+Description: Plugin for the polmineR-package to work with all cooccurrences in a corpus.
+License: GPL-3
 Collate:
     'igraph.R'
     'Cooccurrences.R'

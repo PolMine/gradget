@@ -1,0 +1,103 @@
+---
+title: "Creating ego networks of terms"
+author: "Andreas Blaette"
+date: "15 März 2017"
+output: html_document
+---
+
+
+# Loading required libraries
+
+```{r}
+library(polmineR)
+library(data.table)
+library(polmineR.graph)
+library(igraph)
+library(RColorBrewer)
+library(three)
+```
+
+
+# Configuration
+
+```{r}
+termOfInterest <- "Ungleichheit"
+corpus <- "PLPRBT"
+sAttr <- "speaker_year" # for PLPRBT, would be "text_year" for many other corpora
+pAttr <- "lemma"
+years <- as.character(1998:2015)
+window.size <- 10L
+
+threshold <- 10.84
+min.count <- 3
+graph.order = 1L
+
+svg.width <- 800
+svg.height <- 650
+svg.margin <- 100
+svg.fontSize <- 13
+svg.edgeColor <- "lightgrey"
+
+setwd("~/Lab/tmp/ungleichheit") # output html files will be stored here
+```
+
+
+# helper function
+
+```{r}
+makeSVG <- function(year){
+  
+  print(year)
+  
+  # create partition
+  defList <- list(setNames(year, sAttr))
+  P <- partition(corpus, speaker_year = year, pAttribute = pAttr, regex = TRUE)
+
+  coocTest <- cooccurrences(P, query = termOfInterest, pAttribute = pAttr)
+  if (length(which(coocTest[["count_window"]] >= 5)) <= 5){
+    msg <- "less than 5 statistically significant cooccurrences"
+    warning(msg, year)
+    return(NULL)
+  }
+  
+  # create Cooccurrences object
+  termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(P, pAttribute = pAttr))))
+  Cooc <- Cooccurrences$new(partition = P, pAttribute = pAttr, window = window.size, drop = termsToDrop)
+  Cooc$count()
+  Cooc$trim(action = "drop", by.id = TRUE)
+  Cooc$maths()
+  
+  # minimize by applying statistical threshold, reduction to token neighborhood
+  CoocMin <- copy(Cooc)
+  CoocMin$dt <- copy(Cooc$dt)
+  CoocMin$dt <- CoocMin$dt[ll > threshold]
+  CoocMin$dt <- CoocMin$dt[count_ab >= min.count]
+  G <- CoocMin$as.igraph(as.undirected = TRUE)
+  if (! termOfInterest %in% V(G)$name){
+    warning("no statistignificantly reliable result for ", year)
+    return(NULL)
+  }
+  Gmin <- make_ego_graph(G, order = graph.order, nodes = termOfInterest)[[1]]
+  Gmin <- addCommunities(Gmin)
+  Gmin <- addCoordinates(Gmin, layout = "kamada.kawai", dim = 2)
+  
+  # turn into SVG
+  S <- SVG$new(Gmin)
+  S$width = svg.width
+  S$height = svg.height
+  S$margin = svg.margin
+  S$fontSize = svg.fontSize
+  S$edgeColor = svg.edgeColor
+  S$make()
+  outfile <- S$store(filename = file.path(getwd(), paste(year, ".html", sep = "")))
+  print(outfile)
+
+}
+```
+
+
+# Generate output
+
+```{r}
+for (year in years) makeSVG(year)
+```

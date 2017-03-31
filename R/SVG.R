@@ -40,6 +40,7 @@ SVG <- setRefClass(
     fontSize = "numeric",
     textOffset = "numeric",
     edgeAttributes = "character",
+    edgeColor = "character",
     verticeAttributes = "character",
     layout = "character",
     pandocTab = "logical"
@@ -58,6 +59,7 @@ SVG <- setRefClass(
       .self$margin = 50
       .self$fontSize = 8
       .self$textOffset = 5
+      .self$edgeColor = "black"
       .self$edgeAttributes = "ll"
       .self$verticeAttributes = "tf"
       .self$layout = "kamada.kawai"
@@ -79,10 +81,20 @@ SVG <- setRefClass(
       returned invisibly."
       
       if (length(S$xml) == 0) warning("Field 'xml' is empty, nothing to show.")
-      tmpFile <- tempfile(fileext=".html")
-      cat(.self$xml, file = tmpFile)
-      browseURL(tmpFile)
-      invisible(tmpFile)
+      filename <- .self$store()
+      browseURL(filename)
+      invisible(filename)
+    },
+    
+    
+    store = function(filename = tempfile(fileext=".html")){
+      
+      "Save XML/SVG to disk."
+      
+      if (length(.self$xml) == 0) warning("Field 'xml' is empty, nothing to show.")
+      cat(.self$xml, file = filename)
+      return(filename)
+      
     },
     
 
@@ -176,14 +188,14 @@ SVG <- setRefClass(
     },
     
 
-    makeNodes = function(radius = list(minSize = 3, tf = TRUE), pandocTab = TRUE){
+    makeNodes = function(radius = list(minSize = 5, tf = TRUE), pandocTab = TRUE){
       
       "Make nodes."
       
       if (is.null(V(.self$igraph)$color)) V(.self$igraph)$color <- "blue"
       if (radius[["tf"]] == TRUE){
         if (!is.null(V(.self$igraph)$count)){
-          rad <- radius[["minSize"]] + sqrt(sqrt(V(.self$igraph)$count/3.14159))  
+          rad <- radius[["minSize"]] + sqrt(sqrt(V(.self$igraph)$count / 3.14159))  
         } else {
           rad <- rep(radius[["minSize"]], times=length(V(.self$igraph)))
         }
@@ -253,7 +265,7 @@ SVG <- setRefClass(
           )
           sprintf(
             '<line style="%s" x1="%s" y1="%s" x2="%s" y2="%s" from="%s" to="%s" llXY="%s" llYX="%s" onclick="%s">%s</line>',
-            "stroke:black; stroke-width:1px; fill:none;",
+            sprintf("stroke:%s; stroke-width:1px; fill:none;", .self$edgeColor),
             as.character(V(.self$igraph)[edgelistId[i,1]]$x), #x1
             as.character(V(.self$igraph)[edgelistId[i,1]]$y), #y1
             as.character(V(.self$igraph)[edgelistId[i,2]]$x), #x2

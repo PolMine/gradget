@@ -291,7 +291,7 @@ Cooccurrences <- setRefClass(
       
       if (verbose) message("... creating data.table for reindexing")  
       ID2STR <- data.table(id = unique(.self$dt[["a_id"]]))
-      ID2STR[ , str := as.utf8(CQI$id2str(.self$partition@corpus, "word", ID2STR[["id"]]))]
+      ID2STR[ , str := as.nativeEnc(CQI$id2str(.self$partition@corpus, .self$pAttribute, ID2STR[["id"]]), from = getEncoding(.self$corpus))]
       setkeyv(ID2STR, cols = "id")
       setorderv(ID2STR, cols = "id")
       ID2STR[, "id_new" := 1:nrow(ID2STR), with = TRUE]
@@ -334,20 +334,19 @@ Cooccurrences <- setRefClass(
       
       if (length(pAttribute) == 1){
         
-        DT[, a := as.utf8(CQI$id2str(.self$partition@corpus, .self$partition@pAttribute, a_id))]
-        DT[, b := as.utf8(CQI$id2str(.self$partition@corpus, .self$partition@pAttribute, b_id))]
+        DT[, a := as.nativeEnc(CQI$id2str(.self$partition@corpus, .self$partition@pAttribute, a_id), from = getEncoding(.self$corpus))]
+        DT[, b := as.nativeEnc(CQI$id2str(.self$partition@corpus, .self$partition@pAttribute, b_id), from = getEncoding(.self$corpus))]
         DT[, "a_id" := NULL][, "b_id" := NULL]
-        if (!haskey(.self$partition@stat)) setkeyv(.self$partition@stat, .self$partition@pAttribute)
+        setkeyv(.self$partition@stat, .self$partition@pAttribute)
         setkeyv(DT, cols = "a")
         DT2 <- .self$partition@stat[DT]
-        setnames(DT2, old = c("word", "count"), new = c("a", "count_a"))
+        setnames(DT2, old = c(.self$pAttribute, "count"), new = c("a", "count_a"))
         
         setkeyv(DT2, cols = "b")
         DT3 <- .self$partition@stat[DT2]
-        setnames(DT3, old = c("word", "count"), new = c("b", "count_b"))
+        setnames(DT3, old = c(.self$pAttribute, "count"), new = c("b", "count_b"))
         
-        setnames(DT3, old = c("a", "b"), new = c("a_word", "b_word"))
-        # setcolorder(DT3, c("a_word", "b_word", "count_ab", "count_a", "count_b", "size_window"))
+        setnames(DT3, old = c("a", "b"), new = c(paste("a", .self$pAttribute, sep = "_"), paste("b", .self$pAttribute, sep = "_")))
         .self$dt <- DT3
         coll <- .self$as.S4()
         if ("ll" %in% method) {
@@ -510,12 +509,21 @@ Cooccurrences <- setRefClass(
       tab <- as.data.frame(.self$dt)
       aColsStr <- paste("a", .self$pAttribute, sep = "_")
       bColsStr <- paste("b", .self$pAttribute, sep = "_")
-      tab[["node"]] <- apply(tab, 1, function(x) paste(x[aColsStr], collapse = "//"))
-      tab[["collocate"]] <- apply(tab, 1, function(x) paste(x[bColsStr], collapse="//"))
+      if (length(.self$pAttribute) == 1){
+        tab[["node"]] <- tab[[aColsStr]]
+        tab[["collocate"]] <- tab[[bColsStr]]
+      } else {
+        tab[["node"]] <- apply(tab, 1, function(x) paste(x[aColsStr], collapse = "//"))
+        tab[["collocate"]] <- apply(tab, 1, function(x) paste(x[bColsStr], collapse="//"))
+      }
       g <- graph.data.frame(tab[, c("node", "collocate", edgeAttributes)])
       if ("count" %in% verticeAttributes){
         TF <- .self$partition@stat # this will be a data.frame
-        TF[, key := apply(TF, 1, function(row) paste(row[.self@pAttribute], collapse = "//"))]
+        if (.self$pAttribute == 1){
+          TF[,key := TF[[.self$pAttribute]] ]
+        } else{
+          TF[, key := apply(TF, 1, function(row) paste(row[.self$pAttribute], collapse = "//"))]
+        }
         setkey(TF, key)
         tfVector <- TF[names(V(g))][["count"]]
         V(g)$count <- tfVector

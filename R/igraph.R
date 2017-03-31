@@ -1,11 +1,12 @@
 #' Utility functions to manipulate igraph objects.
 #' 
-#' @param x igraph object
 #' @param layout choose from list
 #' @param dim no of dimensions
+#' @param method method for coordinate calculation
 #' @export addCoordinates
 #' @rdname igraph_utils
 #' @importFrom igraph layout.fruchterman.reingold layout.kamada.kawai layout.spring layout.lgl layout.graphopt edge.betweenness.community is.directed
+#' @importFrom igraph layout_with_graphopt
 addCoordinates = function(
   x,
   layout = c("kamada.kawai", "fruchterman.reingold", "kamada.kawai", "spring", "lgl", "graphopt"),
@@ -18,7 +19,7 @@ addCoordinates = function(
     kamada.kawai = layout.kamada.kawai(x, dim = dim),
     spring = layout.spring(x, dim = dim),
     lgl = layout.lgl(x, dim = dim),
-    graphopt = layout.graphopt(x, dim = dim)
+    graphopt = layout_with_graphopt(x)
     )
   V(x)$x <- coords[,1]
   V(x)$y <- coords[,2]
@@ -77,6 +78,7 @@ rescale <- function(x, min, max){
 #' @rdname igraph_utils
 #' @export addCommunities
 #' @importFrom igraph cluster_fast_greedy fastgreedy.community edge.betweenness.community multilevel.community
+#' @importFrom igraph membership V<-
 addCommunities <- function(x, method = "fastgreedy", weights = FALSE){
   
   colors <- c(
@@ -86,7 +88,7 @@ addCommunities <- function(x, method = "fastgreedy", weights = FALSE){
     brewer.pal(8, "Accent")
   )
   
-  if (method=="fastgreedy"){
+  if (method == "fastgreedy"){
     if (is.directed(x) == TRUE) x <- as.undirected(x, edge.attr.comb = "concat")
     if (weights == TRUE){
       fgComm <- fastgreedy.community(x, weights = E(x)$ll)  
@@ -119,11 +121,3 @@ selectCommunity <- function(x, no){
   delete.vertices(x, V(x)[which(! V(x)$community %in% no)])
 }
 
-
-#' @param order order of neighborhood
-#' @param token token at center pf neighborhood
-#' @rdname igraph_utils
-tokenNeighborhood <- function(x, order, token){
-  toKeep <- unlist(neighborhood(x, order = order, nodes = token))
-  delete.vertices(x, which(!c(1:length(V(x))) %in% toKeep))
-}

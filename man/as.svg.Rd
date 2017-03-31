@@ -5,71 +5,68 @@
 \alias{SVG}
 \alias{SVG-class}
 \title{Make svg for collocations graph}
-\arguments{
-\item{edgeAttributes}{attributes of edges to maintain}
-
-\item{verticeAttributes}{attributes of vertices to maintain}
-
-\item{as.undirected}{logical, whether to turn object into directed graph
-#' @param object the collocation object}
-
-\item{layout}{either "kamada.kawai" or "fruchterman.reingold"}
-
-\item{width}{the width of the svg}
-
-\item{height}{the height of the svg}
-
-\item{margin}{margins of the svg}
-
-\item{fontSize}{font size of the vertex labels}
-
-\item{textOffset}{where to put text}
-
-\item{edgeAttributes}{attributes of edges for tooltips}
-
-\item{verticeAttributes}{attributes of attributes for tooltips}
-
-\item{pandocTab}{logical, whether to format tables with pandoc}
-
-\item{mc}{logical, whether to use multicore}
-}
 \description{
 The resulting svg graph will have clickable nodes and edges. To use this functionality
 you need to install FastRWeb and start it with sudo /var/FastRWeb/code/start
 }
+\section{Fields}{
+
+\describe{
+\item{\code{edgeAttributes}}{attributes of edges to maintain}
+
+\item{\code{verticeAttributes}}{attributes of vertices to maintain}
+
+\item{\code{as.undirected}}{logical, whether to turn object into directed graph}
+
+\item{\code{object}}{the collocation object}
+
+\item{\code{layout}}{either "kamada.kawai" or "fruchterman.reingold"}
+
+\item{\code{width}}{the width of the svg}
+
+\item{\code{height}}{the height of the svg}
+
+\item{\code{margin}}{margins of the svg}
+
+\item{\code{fontSize}}{font size of the vertex labels}
+
+\item{\code{textOffset}}{where to put text}
+
+\item{\code{edgeAttributes}}{attributes of edges for tooltips}
+
+\item{\code{verticeAttributes}}{attributes of attributes for tooltips}
+
+\item{\code{pandocTab}}{logical, whether to format tables with pandoc}
+}}
 \section{Methods}{
 
 \describe{
 \item{\code{as.igraph(as.undirected = TRUE)}}{Turn SVG into igraph object.}
 
+\item{\code{browse()}}{Show SVG in browser. The xml/svg file is stored in a temporary file, which is
+returned invisibly.}
+
 \item{\code{html()}}{Turn into html.}
 
 \item{\code{initialize(x)}}{Create new SVG object.}
 
-\item{\code{make(layout = "kamada.kawai", width = 400, height = 400, margin = 50,
-  fontSize = 8, textOffset = 5, edgeAttributes = "ll",
-  verticeAttributes = "tf", pandocTab = TRUE, mc = FALSE,
-  returnXML = FALSE, verbose = TRUE)}}{Create XML.}
+\item{\code{make(verbose = TRUE)}}{Create XML.}
 
 \item{\code{makeEdges()}}{Make edges.}
 
-\item{\code{makeNodes(radius = list(minSize = 3, tf = TRUE), returnXML = TRUE,
-  pandocTab = TRUE)}}{Make nodes.}
+\item{\code{makeNodes(radius = list(minSize = 5, tf = TRUE), pandocTab = TRUE)}}{Make nodes.}
+
+\item{\code{plot()}}{Show SVG in viewer pane of RStudio.}
 
 \item{\code{selectCommunity(community)}}{Select a community.}
 
-\item{\code{textNodes(fontSize = 8, textOffset = 3, returnXML = TRUE)}}{Make text nodes.}
+\item{\code{store(filename = tempfile(fileext = ".html"))}}{Save XML/SVG to disk.}
+
+\item{\code{textNodes(fontSize = 8, textOffset = 3)}}{Make text nodes.}
 }}
 \examples{
 \dontrun{
 bt17merkel <- partition("PLPRTXT", list(text_lp="17", text_speaker="Angela Merkel", text_type="speech"), tf="word")
-save(bt17merkel, file="/Users/blaette/Lab/polmineR.data/partitionDir/bt17merkel.RData")
-bt17merkelColl <- collocations(bt17merkel, pAttribute="word", mc=TRUE)
-bt17merkelCollTrimmed <- trim(bt17merkelColl, cutoff=list(ll=50, collocateWindowFreq=2))
-iMerkel <- asIgraph(bt17merkelCollTrimmed)
-iMerkel <- addCommunities(iMerkel, method="fastgreedy", weights = FALSE)
-merkelSvg <- as.svg(iMerkel, width=1000, height=1000)
-show(merkelSvg)
 }
 }
 

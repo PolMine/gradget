@@ -6,7 +6,6 @@
 \alias{normalizeCoordinates}
 \alias{rescale}
 \alias{selectCommunity}
-\alias{tokenNeighborhood}
 \title{Utility functions to manipulate igraph objects.}
 \usage{
 addCoordinates(x, layout = c("kamada.kawai", "fruchterman.reingold",
@@ -19,8 +18,6 @@ rescale(x, min, max)
 addCommunities(x, method = "fastgreedy", weights = FALSE)
 
 selectCommunity(x, no)
-
-tokenNeighborhood(x, order, token)
 }
 \arguments{
 \item{x}{igraph object}
@@ -39,17 +36,13 @@ tokenNeighborhood(x, order, token)
 
 \item{max}{max}
 
-\item{method}{}
+\item{method}{method for coordinate calculation}
 
 \item{weights}{use weights for community detection}
 
 \item{no}{number of community}
 
-\item{order}{order of neighborhood}
-
-\item{token}{token at center pf neighborhood}
-
-\item{x}{igraph object}
+\item{method}{}
 }
 \description{
 Utility functions to manipulate igraph objects.

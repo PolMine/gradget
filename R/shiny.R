@@ -6,6 +6,7 @@
 #' @importFrom DT renderDataTable dataTableOutput
 #' @import shiny
 #' @export graphUiInput
+#' @rdname shinyGraphBuildingBlocks
 graphUiInput <- function(){
   list(
     go = actionButton("graph_go", label="", icon = icon("play", lib = "glyphicon")),
@@ -32,6 +33,7 @@ graphUiInput <- function(){
 }
 
 #' @export settingsGraphUiInput
+#' @rdname shinyGraphBuildingBlocks
 settingsGraphUiInput <- function(){
   list(
     callibration_x = sliderInput("graph_callibration_x", "x callibration", min = 0, max = 1, value = 0.68, step = 0.01),
@@ -43,9 +45,11 @@ settingsGraphUiInput <- function(){
 
 
 #' @export graphUiOutput
+#' @rdname shinyGraphBuildingBlocks
 graphUiOutput <- function(){
 }
 
+#' @importFrom igraph components delete_vertices
 .cooccurrencesToIgraph <- function(input, output, session){
   print(input$graph_object) # this is a Cooccurrences object!
   
@@ -125,6 +129,7 @@ graphUiOutput <- function(){
 
 #' @export graphServer
 #' @export graphServer
+#' @rdname shinyGraphBuildingBlocks
 graphServer <- function(input, output, session){
 
   observeEvent(
@@ -218,6 +223,7 @@ graphServer <- function(input, output, session){
 #########################
 
 #' @export cooccurrencesUiInput
+#' @rdname shinyGraphBuildingBlocks
 cooccurrencesUiInput <- function(){
   list(
     actionButton("cooccurrences_go", "", icon = icon("play", lib = "glyphicon")),
@@ -236,6 +242,7 @@ cooccurrencesUiInput <- function(){
 
 
 #' @export cooccurrencesUiOutput
+#' @rdname shinyGraphBuildingBlocks
 cooccurrencesUiOutput <- function(){
   list(
     DT::dataTableOutput('cooccurrences_table')
@@ -244,6 +251,7 @@ cooccurrencesUiOutput <- function(){
 
 
 #' @export cooccurrencesServer
+#' @rdname shinyGraphBuildingBlocks
 cooccurrencesServer <- function(input, output, session){
   
   output$cooccurrences_table <- DT::renderDataTable({
@@ -257,7 +265,7 @@ cooccurrencesServer <- function(input, output, session){
         Encoding(a) <- "unknown"
 
         if (input$cooccurrences_a != "" && input$cooccurrences_b == ""){
-          df <- df[a_word == a]
+          df <- df[df[["a_word"]] == a]
         }
         
         if (input$cooccurrences_a != "" && input$cooccurrences_b != ""){
@@ -265,8 +273,8 @@ cooccurrencesServer <- function(input, output, session){
           Encoding(b) <- "unknown"
 
           df <- data.table::rbindlist(list(
-            df[a_word == a][b_word == b],
-            df[a_word == b][b_word == a]
+            df[df[["a_word"]] == a][df[["b_word"]] == b],
+            df[df[["a_word"]] == b][df[["b_word"]] == a]
           ))
         }
         assign("df", df, envir = get(".polmineR_graph_cache", envir = .GlobalEnv))

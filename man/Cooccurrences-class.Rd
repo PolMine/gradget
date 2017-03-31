@@ -91,23 +91,21 @@ BT2008$count()
 BT2008$trim(action = "drop", by.id = TRUE)
 BT2008$maths()
 
-Merkel$featureSelection(reference = BT2008, included = TRUE)
+Merkel2 <- copy(Merkel)
+Merkel2$featureSelection(reference = BT2008, included = TRUE)
 
 G <- Merkel$as.igraph(as.undirected = TRUE)
 G <- addCommunities(G, method = "fastgreedy", weights = FALSE)
 G <- addCoordinates(G, layout = "kamada.kawai", dim = 3)
 G <- rescale(G, -1000, 1000)
-Y <- as.svg(G)
-Y
 
-T <- as.three(G, bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
-T <- as.three(G, type="anaglyph", bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
-toView <- three:::store(t, directory="/Users/blaette/Lab/tmp/three")
-shiny::runApp("/Users/blaette/Lab/github/polmineR.graph/inst/three")
-browseURL(toView["tmpFileJs"])
-
-merkelSvg <- as.svg(iMerkelComm, width=1000, height=1000)
-merkelSvg
+Y <- SVG(G)
+Y$make()
+Y$plot()
+Y$width = 750
+Y$height = 750
+Y$make()
+Y$browse()
 }
 }
 

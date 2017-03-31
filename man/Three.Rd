@@ -31,15 +31,18 @@ Generate 3d graph with three.js
 \describe{
 \item{\code{as.json()}}{Turn into json.}
 
-\item{\code{initialize(x)}}{Create new Three object.}
+\item{\code{initialize(x, dir = character())}}{Create new Three object.}
 
 \item{\code{make()}}{Fill three slot.}
 }}
 \examples{
 \dontrun{
 library(polmineR)
+library(rjson)
+
 merkel2008 <- partition("PLPRBT", speaker_name = "Angela Merkel", speaker_year = "2008", speaker_type = "speech", pAttribute = "word")
 termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(merkel2008, pAttribute = "word"))))
+
 Merkel <- Cooccurrences$new(partition = merkel2008, pAttribute = "word", window = 5L, drop = termsToDrop)
 Merkel$count()
 Merkel$trim(action = "drop", by.id = TRUE)
@@ -48,8 +51,19 @@ Merkel$maths()
 Merkel$dt <- Merkel$dt[1:250]
 
 G <- Merkel$as.igraph()
-T <- Three$new(G)
+G <- addCoordinates(G, layout = "kamada.kawai", dim = 3)
+G <- addCommunities(G)
+G <- rescale(G, -275, 275)
 
+T <- Three$new(G, dir = "/Users/blaette/Lab/tmp/three")
+T$fontSize <- 18
+T$edgeWidth <- 6
+T$edgeColor <- "0x666666"
+T$bgColor <- "0x000000"
+T$fontColor <- "0xffffff"
+T$type <- "anaglyph"
+T$make()
+T$browse()
 }
 }
 
