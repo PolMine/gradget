@@ -25,12 +25,14 @@ termOfInterest <- "Ungleichheit"
 corpus <- "PLPRBT"
 sAttr <- "speaker_year" # for PLPRBT, would be "text_year" for many other corpora
 pAttr <- "lemma"
+use.regex <- TRUE
 years <- as.character(1998:2015)
 window.size <- 10L
 
-threshold <- 10.84
+threshold <- 3.84
 min.count <- 3
 graph.order = 1L
+
 
 svg.width <- 800
 svg.height <- 650
@@ -45,13 +47,13 @@ setwd("~/Lab/tmp/ungleichheit") # output html files will be stored here
 # helper function
 
 ```{r}
-makeSVG <- function(year){
+makeSVG <- function(sAttrValue, label){
   
   print(year)
   
   # create partition
-  defList <- list(setNames(year, sAttr))
-  P <- partition(corpus, speaker_year = year, pAttribute = pAttr, regex = TRUE)
+  defList <- as.list(setNames(sAttrValue, sAttr))
+  P <- partition(corpus, def = defList, pAttribute = pAttr, regex = use.regex)
 
   coocTest <- cooccurrences(P, query = termOfInterest, pAttribute = pAttr)
   if (length(which(coocTest[["count_window"]] >= 5)) <= 5){
@@ -99,5 +101,10 @@ makeSVG <- function(year){
 # Generate output
 
 ```{r}
-for (year in years) makeSVG(year)
+for (year in years) makeSVG(sAttrValue = year, label = year)
+```
+
+```{r}
+makeSVG(sAttrValue = as.character(1998:2008), label = "pre2008")
+makeSVG(sAttrValue = as.character(2008:2015), label = "2008ff")
 ```
