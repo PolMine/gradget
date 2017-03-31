@@ -186,11 +186,11 @@ Cooccurrences <- setRefClass(
         
         if (length(.self$pAttribute) == 0) stop("The partition is required to included counts. Enrich the object first!")
         
-        pAttr <- sapply(pAttribute, function(x) paste(.Object@corpus, x, sep = "."))
+        pAttr <- sapply(pAttribute, function(x) paste(.self$corpus, x, sep = "."))
         aColsId <- setNames(paste("a", .self$pAttribute, "id", sep="_"), .self$pAttribute)
         bColsId <- setNames(paste("b", .self$pAttribute, "id", sep="_"), .self$pAttribute)
         aColsStr <- setNames(paste("a", .self$pAttribute, sep="_"), .self$pAttribute)
-        bColsStr <- setNames(paste("b", .self$pAttribute, sep="_"), .sself$pAttribute)
+        bColsStr <- setNames(paste("b", .self$pAttribute, sep="_"), .self$pAttribute)
         
         .makeWindows <- function(i, cpos, ...){
           cposMin <- cpos[i,1]
