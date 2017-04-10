@@ -221,7 +221,7 @@ SVG <- setRefClass(
             "count: ", as.character(V(.self$igraph)[i]$count), "\n",
             "freq: ", as.character(V(.self$igraph)[i]$tfRel), "\n",
             "community: ", community,
-            sep="")
+            sep = "")
         }
         tooltip <- sprintf(
           '<title style="letter-spacing:4px;background-color: yellow;">%s</title>',
