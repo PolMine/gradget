@@ -29,8 +29,10 @@
 #' @param verbose bla
 #' @examples 
 #' \dontrun{
+#' use("taz.beta")
 #' E <- Ego$new(
-#'   coi = partition("PLPRBT", text_year = "2010"), query = "Ungleichheit",
+#'   coi = partition("TAZ", text_date = "2010.*", regex = TRUE),
+#'   query = "Islam",
 #'   left = 10, right = 10,
 #'   drop = list(
 #'     word = c('"', '!', '/', '.', ":", "[", "]", "#", "'", ","),
@@ -43,8 +45,9 @@
 #' E$plot(with = "networkD3")
 #' 
 #' graph <- as.dgr_graph(E$igraph)
-#' render_graph(graph)
-#' E$plot(with = "DigrammeR")
+#' DiagrammeR::render_graph(graph)
+#' 
+#' E$plot(with = "plotly")
 #' 
 #' S <- E$as.SVG()
 #' S$width <- 500
@@ -59,6 +62,7 @@
 #' @importFrom pbapply pblapply
 #' @importFrom igraph graph_from_data_frame as_edgelist
 #' @importFrom networkD3 forceNetwork
+#' @export Ego
 Ego <- setRefClass(
   
   Class = "Ego",

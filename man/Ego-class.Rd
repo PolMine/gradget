@@ -78,7 +78,8 @@ Analyse ego networks of queries.
 \examples{
 \dontrun{
 E <- Ego$new(
-  coi = partition("PLPRBT", text_year = "2010"), query = "Ungleichheit",
+  coi = partition("PLPRBT", text_year = "2010"),
+  query = "Islam",
   left = 10, right = 10,
   drop = list(
     word = c('"', '!', '/', '.', ":", "[", "]", "#", "'", ","),
@@ -92,7 +93,8 @@ E$plot(with = "networkD3")
 
 graph <- as.dgr_graph(E$igraph)
 render_graph(graph)
-E$plot(with = "DigrammeR")
+
+E$plot(with = "plotly")
 
 S <- E$as.SVG()
 S$width <- 500
