@@ -3,6 +3,9 @@
 \name{addCoordinates}
 \alias{addCommunities}
 \alias{addCoordinates}
+\alias{as.dgr_graph}
+\alias{as.networkD3}
+\alias{as.plotly}
 \alias{normalizeCoordinates}
 \alias{rescale}
 \alias{selectCommunity}
@@ -18,6 +21,12 @@ rescale(x, min, max)
 addCommunities(x, method = "fastgreedy", weights = FALSE)
 
 selectCommunity(x, no)
+
+as.dgr_graph(x)
+
+as.plotly(x)
+
+as.networkD3(x)
 }
 \arguments{
 \item{x}{igraph object}
@@ -41,8 +50,6 @@ selectCommunity(x, no)
 \item{weights}{use weights for community detection}
 
 \item{no}{number of community}
-
-\item{method}{}
 }
 \description{
 Utility functions to manipulate igraph objects.

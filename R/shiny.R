@@ -130,6 +130,7 @@ graphUiOutput <- function(){
 #' @export graphServer
 #' @export graphServer
 #' @rdname shinyGraphBuildingBlocks
+#' @importFrom shinyjs js
 graphServer <- function(input, output, session){
 
   observeEvent(

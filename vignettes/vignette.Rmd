@@ -42,6 +42,7 @@ September 11.
 library(polmineR)
 use("plprbt.pvs2017")
 coi <- partition("PLPRBT", text_year = as.character(2002), pAttribute = c("word", "pos"))
+coi <- Corpus$new("PLPRBT", pAttribute = c("word", "pos"))
 ```
 
 At this stage, let us define a few general parameters for the analysis. We are not interested in substantive
@@ -77,6 +78,7 @@ subset-method that is applied to the \code{data.table} in the slot "stat" if the
 nodeCoocsMin <- subset(nodeCoocs, !pos %in% posToDrop)
 nodeCoocsMin <- subset(nodeCoocsMin, count_window >= min.count)
 nodeCoocsMin <- subset(nodeCoocsMin, ll >= min.ll)
+if (nrow(nodeCoocsMin) > max.coocs) nodeCoocsMin <- nodeCoocsMin[1:max.coocs]
 ```
 
 In the column "word" of the \code{data.table} in the cooccurrences-object, we find the statistically

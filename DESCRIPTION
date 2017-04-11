@@ -21,7 +21,12 @@ Imports:
     slam,
     DT,
     data.table,
-    colourpicker
+    colourpicker,
+    DiagrammeR,
+    networkD3,
+    pbapply,
+    plotly,
+    shinyjs
 Suggests:
     knitr
 VignetteBuilder: knitr
@@ -35,4 +40,5 @@ Collate:
     'Three.R'
     'polmineR.graph_package.R'
     'shiny.R'
+    'Ego.R'
 RoxygenNote: 5.0.1
