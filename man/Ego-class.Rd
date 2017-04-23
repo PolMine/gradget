@@ -6,79 +6,84 @@
 \alias{Ego-class}
 \title{Analyse ego networks of queries.}
 \arguments{
-\item{coi}{bla}
+\item{coi}{corpus of interest, either a partition or name of a CWB corpus (character vector length 1)}
 
-\item{query}{bla}
+\item{query}{query, may be a CQP query}
 
-\item{left}{bla}
+\item{left}{number of tokens to the left of the query}
 
-\item{right}{bla}
+\item{right}{number of tokens to the right of the query}
 
-\item{pAttribute}{bla}
+\item{pAttribute}{character vector (length 1 or more) indicating p-attributes}
 
-\item{min.count}{bla}
+\item{min.count}{minimum number of counts (in window)}
 
-\item{min.ll}{bla}
+\item{min.ll}{minimum log likelihood value}
 
-\item{max.coocs}{= 10 bla}
+\item{max.coocs}{maximum number of cooccurrences}
 
-\item{keep}{bla}
+\item{keep}{a named list of character vectors with tokens to be kept}
 
-\item{drop}{bla}
+\item{drop}{a named list of character vectors with tokens to be dropped}
 
-\item{verbose}{bla}
+\item{verbose}{logical, whether to print status messages}
 }
 \description{
-Analyse ego networks of queries.
+Reference class to organise the analysis of ego networks.
 }
 \section{Fields}{
 
 \describe{
-\item{\code{query}}{bla}
+\item{\code{query}}{the query}
 
-\item{\code{left}}{bla}
+\item{\code{left}}{number of tokens to the left of the query}
 
-\item{\code{right}}{bla}
+\item{\code{right}}{number of tokens to the right of the query}
 
-\item{\code{partition}}{bla}
+\item{\code{partition}}{a partition object}
 
-\item{\code{Corpus}}{bla}
+\item{\code{Corpus}}{a Corpus object}
 
-\item{\code{pAttribute}}{bla}
+\item{\code{pAttribute}}{pAttribute(s)}
 
-\item{\code{keep}}{bla}
+\item{\code{keep}}{named list (see arguments)}
 
-\item{\code{drop}}{bla}
+\item{\code{drop}}{named list (see arguments)}
 
-\item{\code{min.count}}{bla}
+\item{\code{min.count}}{minimum number of counts (in window)}
 
-\item{\code{min.ll}}{bla}
+\item{\code{min.ll}}{minimum log likelihood value}
 
-\item{\code{max.coocs}}{bla}
+\item{\code{max.coocs}}{maximum number of cooccurrences}
 
-\item{\code{igraph}}{bla}
+\item{\code{igraph}}{igraph object}
 
-\item{\code{fontSize}}{bla}
+\item{\code{fontSize}}{font size}
 
-\item{\code{layout}}{bla}
+\item{\code{layout}}{graph layout}
 
-\item{\code{verbose}}{bla}
+\item{\code{verbose}}{logical, whether to print status messages}
 }}
 \section{Methods}{
 
 \describe{
+\item{\code{as.SVG()}}{Turn igraph object into SVG class for plotting.}
+
+\item{\code{calc()}}{Initiate calculation of ego network.}
+
 \item{\code{initialize(coi, query, left = getOption("polmineR.left"),
   right = getOption("polmineR.right"),
   pAttribute = getOption("polmineR.pAttribute"), min.count = 3,
   min.ll = 10.83, max.coocs = 10, keep = list(), drop = list(word =
   c("\\"", "!", "/", ".", "[", "]")), verbose = TRUE)}}{Create new Ego object.}
 
-\item{\code{plot(with = "networkD3")}}{Show SVG in viewer pane of RStudio.}
+\item{\code{plot(with = "networkD3")}}{Plot graph using network D3, DiagrammeR or plotly.}
 }}
 \examples{
 \dontrun{
+use("taz.beta")
 E <- Ego$new(
-  coi = partition("PLPRBT", text_year = "2010"),
+  coi = partition("TAZ", text_date = "2010.*", regex = TRUE),
   query = "Islam",
   left = 10, right = 10,
   drop = list(
@@ -92,7 +97,7 @@ E$calc()
 E$plot(with = "networkD3")
 
 graph <- as.dgr_graph(E$igraph)
-render_graph(graph)
+DiagrammeR::render_graph(graph)
 
 E$plot(with = "plotly")
 

@@ -1,32 +1,35 @@
 #' Analyse ego networks of queries.
 #' 
-#' @field query bla
-#' @field left bla
-#' @field right bla
-#' @field partition bla
-#' @field Corpus bla
-#' @field pAttribute bla
-#' @field keep bla
-#' @field drop bla
-#' @field min.count bla
-#' @field min.ll bla
-#' @field max.coocs bla
-#' @field igraph bla
-#' @field fontSize bla
-#' @field layout bla
-#' @field verbose bla
+#' Reference class to organise the analysis of ego networks.
 #' 
-#' @param coi bla
-#' @param query bla
-#' @param left bla
-#' @param right bla
-#' @param pAttribute bla
-#' @param min.count bla
-#' @param min.ll bla
-#' @param max.coocs = 10 bla
-#' @param keep bla
-#' @param drop bla
-#' @param verbose bla
+#' @param coi corpus of interest, either a partition or name of a CWB corpus (character vector length 1)
+#' @param query query, may be a CQP query
+#' @param left number of tokens to the left of the query
+#' @param right number of tokens to the right of the query
+#' @param pAttribute character vector (length 1 or more) indicating p-attributes
+#' @param min.count minimum number of counts (in window)
+#' @param min.ll minimum log likelihood value
+#' @param max.coocs maximum number of cooccurrences
+#' @param keep a named list of character vectors with tokens to be kept
+#' @param drop a named list of character vectors with tokens to be dropped
+#' @param verbose logical, whether to print status messages
+#' 
+#' @field query the query
+#' @field left number of tokens to the left of the query
+#' @field right number of tokens to the right of the query
+#' @field partition a partition object
+#' @field Corpus a Corpus object
+#' @field pAttribute pAttribute(s)
+#' @field keep named list (see arguments)
+#' @field drop named list (see arguments)
+#' @field min.count minimum number of counts (in window)
+#' @field min.ll minimum log likelihood value
+#' @field max.coocs maximum number of cooccurrences
+#' @field igraph igraph object
+#' @field fontSize font size 
+#' @field layout graph layout
+#' @field verbose logical, whether to print status messages
+#' 
 #' @examples 
 #' \dontrun{
 #' use("taz.beta")
@@ -89,9 +92,7 @@ Ego <- setRefClass(
   
   methods = list(
     
-    initialize = function(
-      coi, query,
-      left = getOption("polmineR.left"), right = getOption("polmineR.right"),
+    initialize = function(coi, query, left = getOption("polmineR.left"), right = getOption("polmineR.right"),
       pAttribute = getOption("polmineR.pAttribute"),
       min.count = 3, min.ll = 10.83, max.coocs = 10,
       keep = list(), drop = list(word = c('"', '!', '/', '.', '[', ']')),
@@ -120,6 +121,8 @@ Ego <- setRefClass(
     },
     
     calc = function(){
+      
+      "Initiate calculation of ego network."
       
       if (nrow(.self$partition@cpos) > 0){
         coi <- .self$partition
@@ -167,12 +170,15 @@ Ego <- setRefClass(
     },
     
     as.SVG = function(){
-      SVG(.self$igraph)
+      
+      "Turn igraph object into SVG class for plotting."
+      
+      SVG$new(.self$igraph)
     },
     
     plot = function(with = "networkD3"){
       
-      "Show SVG in viewer pane of RStudio."
+      "Plot graph using network D3, DiagrammeR or plotly."
       
       switch(
         with,
