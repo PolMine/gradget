@@ -424,7 +424,7 @@ Cooccurrences <- setRefClass(
       if (included == TRUE) MATCH[, "count_ref" := MATCH[["count_ref"]] - MATCH[["count_coi"]] ]
       
       compObject <- new(
-        "comp",
+        "features",
         included = FALSE, corpus = .self$corpus, sizeCoi = .self$partition@size,
         sizeRef = if (included) reference$partition@size - .self$partition@size else reference$partition@size,
         pAttribute = .self$pAttribute,

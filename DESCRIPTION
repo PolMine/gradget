@@ -1,8 +1,8 @@
 Package: polmineR.graph
 Type: Package
 Title: polmineR.graph
-Version: 0.2.3
-Date: 2017-04-10
+Version: 0.2.4
+Date: 2017-04-23
 Author: Andreas Blaette
 Maintainer: Andreas Blaette <andreas.blaette@uni-due.de>
 Depends:

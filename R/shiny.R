@@ -51,19 +51,25 @@ graphUiOutput <- function(){
 
 #' @importFrom igraph components delete_vertices
 .cooccurrencesToIgraph <- function(input, output, session){
+  print("fn .cooccurrencesToIgraph")
   print(input$graph_object) # this is a Cooccurrences object!
   
-  coocObject <- get(input$graph_object, envir = .GlobalEnv)$copy()
-  print(dim(coocObject))
+  coocObjectOriginal <- get(input$graph_object, envir = .GlobalEnv)
+  coocObject <- copy(coocObjectOriginal)
+  print(dim(coocObject$dt))
   
   if (TRUE){
-    coocObject$drop <- c(polmineR::punctuation, unlist(noise(pAttributes(coocObject, pAttribute = "word"))))
+    coocObject$drop <- list(
+      c(polmineR::punctuation, unlist(noise(pAttributes(coocObject$partition, pAttribute = coocObject$pAttribute))))
+    )
+    names(coocObject$drop) <- coocObject$pAttribute
     coocObject$trim(action = "drop", by.id = FALSE)
   }
   
   message("... trimming object / applying max_rank")
   maxValue <- as.integer(input$graph_max_rank)
   if (input$graph_reference != ""){
+    print("foo")
     coocObject$featureSelection(reference = get(input$graph_reference, envir = .GlobalEnv), included = TRUE, n = maxValue)
     print(dim(coocObject))
   } else {
@@ -203,7 +209,7 @@ graphServer <- function(input, output, session){
   observeEvent(
     input$graph_space_pressed,
     {
-      Sys.sleep(0.5) # minimal delay required so that values are transferred
+      Sys.sleep(0.3) # minimal delay required so that values are transferred
       newTime <- as.character(Sys.time())
       updateSelectInput(
         session, "cooccurrences_time",
@@ -260,33 +266,37 @@ cooccurrencesServer <- function(input, output, session){
     input$cooccurrences_time
     isolate({
       if (input$cooccurrences_name != ""){
-        df <- get(input$cooccurrences_name, envir = .GlobalEnv)$dt
+        message("... getting Cooccurrences object: ", input$cooccurrences_name)
+        dt <- get(input$cooccurrences_name, envir = .GlobalEnv)$dt
         
         a <- input$cooccurrences_a
         Encoding(a) <- "unknown"
 
         if (input$cooccurrences_a != "" && input$cooccurrences_b == ""){
-          df <- df[df[["a_word"]] == a]
+          dt <- dt[dt[["a_word"]] == a]
         }
         
         if (input$cooccurrences_a != "" && input$cooccurrences_b != ""){
           b <- input$cooccurrences_b
           Encoding(b) <- "unknown"
 
-          df <- data.table::rbindlist(list(
-            df[df[["a_word"]] == a][df[["b_word"]] == b],
-            df[df[["a_word"]] == b][df[["b_word"]] == a]
-          ))
+          dt1 <- dt[dt[["a_word"]] == a]
+          dt1 <- dt1[dt1[["b_word"]] == b]
+          dt2 <- dt[dt[["a_word"]] == b]
+          dt2 <- dt2[dt2[["b_word"]] == a]
+          dt <- data.table::rbindlist(list(dt1, dt2))
         }
-        assign("df", df, envir = get(".polmineR_graph_cache", envir = .GlobalEnv))
-        return(df)
+        assign("dt", dt, envir = get(".polmineR_graph_cache", envir = .GlobalEnv))
+        
+        return(dt)
       } else {
-        df <- data.frame(
+        dt <- data.table(
           word = ""[0], count_window = ""[0], count_partition = ""[0],
           exp_window = integer(), exp_partition = integer(), ll = integer(),
           rank_ll = integer()
         )
-        return(df)
+        print(dt)
+        return(dt)
       }
     })
   })
@@ -296,12 +306,12 @@ cooccurrencesServer <- function(input, output, session){
     {
       if (length(input$cooccurrences_table_rows_selected) > 0){
         if (input$cooccurrences_a == ""){
-          statTab <- get(input$cooccurrences_name, envir = .GlobalEnv)@stat
+          statTab <- get(input$cooccurrences_name, envir = .GlobalEnv)$dt
         } else {
           statTab <- get("df", envir = get(".polmineR_graph_cache", envir = .GlobalEnv))
         }
         updateSelectInput(session, "kwic_object", selected = "partition")
-        updateSelectInput(session, "kwic_partition", selected = get(input$graph_object, envir = .GlobalEnv)@partition)
+        updateSelectInput(session, "kwic_partition", selected = get(input$graph_object, envir = .GlobalEnv)$partition)
         updateTextInput(
           session, "kwic_query",
           value = statTab[["a_word"]][input$cooccurrences_table_rows_selected]

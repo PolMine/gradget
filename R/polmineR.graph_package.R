@@ -18,14 +18,20 @@
 #' library(polmineR.graph)
 #' library(three)
 #' 
-#' bt17merkel <- partition(
-#'  "PLPRBT", speaker_lp = "17", speaker_name = "Angela Merkel",
-#'  speaker_type = "speech", pAttribute = "word"
-#' )
-#' bt17merkelCooc <- cooccurrences(bt17merkel, keep = NULL, pAttribute = "word", mc = TRUE)
+#' merkel2008 <- partition("PLPRBT", speaker_name = "Angela Merkel", speaker_year = "2008", speaker_type = "speech", pAttribute = "word")
+#' termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(merkel2008, pAttribute = "word"))))
 #' 
-#' bt17 <- partition("PLPRBT", speaker_lp = "17", speaker_type = "speech", pAttribute = "word")
-#' bt17cooc <- cooccurrences(bt17, keep = NULL, pAttribute = "word", mc = TRUE, progress = TRUE)
+#' Merkel <- Cooccurrences$new(partition = merkel2008, pAttribute = "word", window = 5L, drop = termsToDrop)
+#' Merkel$count()
+#' Merkel$trim(action = "drop", by.id = TRUE)
+#' Merkel$maths()
+#' 
+#' bt2008 <- partition("PLPRBT", speaker_year = "2008", pAttribute = "word")
+#' termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(bt2008, pAttribute = "word"))))
+#' BT2008 <- Cooccurrences$new(partition = bt2008, pAttribute = "word", window = 5L, drop = termsToDrop)
+#' BT2008$count()
+#' BT2008$trim(action = "drop", by.id = TRUE)
+#' BT2008$maths()
 #' 
 #' C <- compare(bt17merkelCooc, bt17cooc)
 #' 
@@ -50,6 +56,23 @@ setOldClass("json")
 
 #' @export polmineR.graph
 #' @rdname polmineR.graph
+#' @examples 
+#' \dontrun{
+#' merkel2008 <- partition("PLPRBT", speaker_name = "Angela Merkel", speaker_year = "2008", speaker_type = "speech", pAttribute = "word")
+#' termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(merkel2008, pAttribute = "word"))))
+#' 
+#' Merkel <- Cooccurrences$new(partition = merkel2008, pAttribute = "word", window = 5L, drop = termsToDrop)
+#' Merkel$count()
+#' Merkel$trim(action = "drop", by.id = TRUE)
+#' Merkel$maths()
+#' 
+#' bt2008 <- partition("PLPRBT", speaker_year = "2008", pAttribute = "word")
+#' termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(bt2008, pAttribute = "word"))))
+#' BT2008 <- Cooccurrences$new(partition = bt2008, pAttribute = "word", window = 5L, drop = termsToDrop)
+#' BT2008$count()
+#' BT2008$trim(action = "drop", by.id = TRUE)
+#' BT2008$maths()
+#' }
 polmineR.graph <- function(){
   shiny::runApp(system.file("three", package = "polmineR.graph"))
 }
