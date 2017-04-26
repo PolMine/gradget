@@ -2,7 +2,7 @@ shinyServer(function(input, output, session) {
   
   graphServer(input, output, session)
   kwicServer(input, output, session) # in package polmineR.shiny
-  cooccurrencesServer(input, output, session)
+  polmineR.graph::cooccurrencesServer(input, output, session)
   readServer(input, output, session)
   
   observe({

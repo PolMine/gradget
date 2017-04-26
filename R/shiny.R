@@ -49,51 +49,6 @@ settingsGraphUiInput <- function(){
 graphUiOutput <- function(){
 }
 
-#' @importFrom igraph components delete_vertices
-.cooccurrencesToIgraph <- function(input, output, session){
-  print("fn .cooccurrencesToIgraph")
-  print(input$graph_object) # this is a Cooccurrences object!
-  
-  coocObjectOriginal <- get(input$graph_object, envir = .GlobalEnv)
-  coocObject <- copy(coocObjectOriginal)
-  print(dim(coocObject$dt))
-  
-  if (TRUE){
-    coocObject$drop <- list(
-      c(polmineR::punctuation, unlist(noise(pAttributes(coocObject$partition, pAttribute = coocObject$pAttribute))))
-    )
-    names(coocObject$drop) <- coocObject$pAttribute
-    coocObject$trim(action = "drop", by.id = FALSE)
-  }
-  
-  message("... trimming object / applying max_rank")
-  maxValue <- as.integer(input$graph_max_rank)
-  if (input$graph_reference != ""){
-    print("foo")
-    coocObject$featureSelection(reference = get(input$graph_reference, envir = .GlobalEnv), included = TRUE, n = maxValue)
-    print(dim(coocObject))
-  } else {
-    coocObject$dt <- coocObject$dt[1:maxValue]
-  }
-  
-  
-  message("... as igraph")
-  igraphObject <- coocObject$as.igraph()
-  
-  if (input$graph_cutoff >= 2){
-    message("... removing components")
-    comps <- components(igraphObject)
-    verticesToDrop <- which(comps[[1]] %in% (1:max(comps[[2]]))[which(comps[[2]] <= input$graph_cutoff)])
-    igraphObject <- delete_vertices(igraphObject, verticesToDrop)
-  }
-  
-  message("... community detection")
-  igraphObject <- addCommunities(igraphObject, method = "fastgreedy", weights = FALSE)
-  
-  message("... layout / coordinates")
-  igraphObject <- addCoordinates(igraphObject, layout = "kamada.kawai", dim = 3)
-  igraphObject
-}
 
 .asDOMElement <- function(x){
   x <- rescale(x, -600, 600)
@@ -137,6 +92,7 @@ graphUiOutput <- function(){
 #' @export graphServer
 #' @rdname shinyGraphBuildingBlocks
 #' @importFrom shinyjs js
+#' @importFrom igraph components delete_vertices
 graphServer <- function(input, output, session){
 
   observeEvent(
@@ -144,45 +100,84 @@ graphServer <- function(input, output, session){
     {
       if (input$graph_dim == "2d"){
         
-        igraphObject <- get("igraphObject", envir = get(".polmineR_graph_cache", envir = .GlobalEnv))
-        domElement <- .asDOMElement(igraphObject)
+        domElement <- .asDOMElement(cache[["igraph"]])
         js$twoDimGraph(domElement)
         
       }
     }
   )
   
+
   observeEvent(
     input$graph_go,
     {
-      # if (input$graph_go > 0){
-        
-        message("... generating new object")
-        igraphObject <- .cooccurrencesToIgraph(input, output, session)
-        
-        # assign to cache, so that object will be available for switching 2d/3d mode
-        message("... assign to .GlobalEnv")
-        assign("igraphObject", igraphObject, envir = get(".polmineR_graph_cache", envir = .GlobalEnv))
-
-        if (input$graph_dim == "2d"){
+      
+      withProgress(
+        message = "Generating graph", value = 1, max = 6, detail = "... getting started",
+        expr = {
           
-          message("... rescaling")
-          igraphObject <- rescale(igraphObject, -600, 600)
-          domElement <- .asDOMElement(igraphObject)
-          js$twoDimGraph(domElement)
+          coocObjectOriginal <- get(input$graph_object, envir = .GlobalEnv)
+          coocObject <- copy(coocObjectOriginal)
           
-        } else if (input$graph_dim == "3d"){
+          # denoise
+          if (TRUE){
+            coocObject$drop <- list(
+              c(
+                polmineR::punctuation,
+                unlist(noise(pAttributes(coocObject$partition, pAttribute = coocObject$pAttribute)))
+              )
+            )
+            names(coocObject$drop) <- coocObject$pAttribute
+            coocObject$trim(action = "drop", by.id = FALSE)
+          }
           
-          message("... 3d json")
-          igraphObject <- rescale(igraphObject, -400, 400)
-          newJson <- .igraphToJson(igraphObject)
-          message("... transferring new values")
-          js$reloadData(newJson)
-          js$reinitialize()
-          js$reanimate()
-        
+          setProgress(value = 2, detail = "... apply max rank")
+          maxValue <- as.integer(input$graph_max_rank)
+          if (input$graph_reference != ""){
+            coocObject$featureSelection(reference = get(input$graph_reference, envir = .GlobalEnv), included = TRUE, n = maxValue)
+          } else {
+            coocObject$dt <- coocObject$dt[1:maxValue]
+          }
+          
+          setProgress(value = 3, detail = "... generate igraph object")
+          igraphObject <- coocObject$as.igraph()
+          
+          if (input$graph_cutoff >= 2){
+            setProgress(value = 4, detail = "... removing components")
+            comps <- components(igraphObject)
+            verticesToDrop <- which(comps[[1]] %in% (1:max(comps[[2]]))[which(comps[[2]] <= input$graph_cutoff)])
+            igraphObject <- delete_vertices(igraphObject, verticesToDrop)
+          }
+          
+          setProgress(value = 5, detail = "... community detection")
+          igraphObject <- addCommunities(igraphObject, method = "fastgreedy", weights = FALSE)
+          
+          setProgress(value = 6, detail = "... layout / coordinates")
+          igraphObject <- addCoordinates(igraphObject, layout = "kamada.kawai", dim = 3)
+          
+          values[["igraph"]] <- igraphObject
+          
         }
-      # }
+      )
+      
+      if (input$graph_dim == "2d"){
+        
+        message("... rescaling")
+        values[["igraph"]] <- rescale(igraphObject, -600, 600)
+        domElement <- .asDOMElement(values[["igraph"]])
+        js$twoDimGraph(domElement)
+        
+      } else if (input$graph_dim == "3d"){
+        
+        message("... 3d json")
+        values[["igraph"]] <- rescale(values[["igraph"]], -400, 400)
+        newJson <- .igraphToJson(values[["igraph"]])
+        message("... transferring new values")
+        js$reloadData(newJson)
+        js$reinitialize()
+        js$reanimate()
+        
+      }
     }
   )
   
@@ -265,12 +260,14 @@ cooccurrencesServer <- function(input, output, session){
     input$cooccurrences_go
     input$cooccurrences_time
     isolate({
+      
       if (input$cooccurrences_name != ""){
+        
         message("... getting Cooccurrences object: ", input$cooccurrences_name)
         dt <- get(input$cooccurrences_name, envir = .GlobalEnv)$dt
         
         a <- input$cooccurrences_a
-        Encoding(a) <- "unknown"
+        Encoding(a) <- "unknown" # to avoid data.table errors (?!)
 
         if (input$cooccurrences_a != "" && input$cooccurrences_b == ""){
           dt <- dt[dt[["a_word"]] == a]
@@ -286,7 +283,7 @@ cooccurrencesServer <- function(input, output, session){
           dt2 <- dt2[dt2[["b_word"]] == a]
           dt <- data.table::rbindlist(list(dt1, dt2))
         }
-        assign("dt", dt, envir = get(".polmineR_graph_cache", envir = .GlobalEnv))
+        values[["dt"]] <- dt
         
         return(dt)
       } else {
@@ -308,10 +305,13 @@ cooccurrencesServer <- function(input, output, session){
         if (input$cooccurrences_a == ""){
           statTab <- get(input$cooccurrences_name, envir = .GlobalEnv)$dt
         } else {
-          statTab <- get("df", envir = get(".polmineR_graph_cache", envir = .GlobalEnv))
+          statTab <- values[["dt"]]
         }
         updateSelectInput(session, "kwic_object", selected = "partition")
-        updateSelectInput(session, "kwic_partition", selected = get(input$graph_object, envir = .GlobalEnv)$partition)
+        P <- get(input$graph_object, envir = .GlobalEnv)$partition
+        values[["partitions"]][[P@name]] <- P
+        print(P@name)
+        updateSelectInput(session, "kwic_partition", choices = P@name, selected = P@name)
         updateTextInput(
           session, "kwic_query",
           value = statTab[["a_word"]][input$cooccurrences_table_rows_selected]
@@ -320,9 +320,9 @@ cooccurrencesServer <- function(input, output, session){
           session, "kwic_neighbor",
           value = statTab[["b_word"]][input$cooccurrences_table_rows_selected]
         )
-        updateSelectInput(session, "kwic_left", selected = get(input$cooccurrences_name, envir = .GlobalEnv)@left)
-        updateSelectInput(session, "kwic_right", selected = get(input$cooccurrences_name, envir = .GlobalEnv)@right)
-        updateSelectInput(session, "kwic_pAttribute", selected = get(input$cooccurrences_name, envir = .GlobalEnv)@pAttribute)
+        updateSelectInput(session, "kwic_left", selected = get(input$cooccurrences_name, envir = .GlobalEnv)$window)
+        updateSelectInput(session, "kwic_right", selected = get(input$cooccurrences_name, envir = .GlobalEnv)$window)
+        updateSelectInput(session, "kwic_pAttribute", selected = get(input$cooccurrences_name, envir = .GlobalEnv)$pAttribute)
         updateNavbarPage(session, "polmineR", selected = "kwic")
         Time <- as.character(Sys.time())
         updateSelectInput(session, "kwic_read", choices = Time, selected = Time)

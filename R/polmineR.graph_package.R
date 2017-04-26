@@ -58,7 +58,7 @@ setOldClass("json")
 #' @rdname polmineR.graph
 #' @examples 
 #' \dontrun{
-#' merkel2008 <- partition("PLPRBT", speaker_name = "Angela Merkel", speaker_year = "2008", speaker_type = "speech", pAttribute = "word")
+#' merkel2008 <- partition("PLPRBT", speaker_name = "Angela Merkel", speaker_year = "2008", speaker_type = "speech", pAttribute = "word", name = "Merkel2008")
 #' termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(merkel2008, pAttribute = "word"))))
 #' 
 #' Merkel <- Cooccurrences$new(partition = merkel2008, pAttribute = "word", window = 5L, drop = termsToDrop)
