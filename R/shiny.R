@@ -204,7 +204,7 @@ graphServer <- function(input, output, session){
   observeEvent(
     input$graph_space_pressed,
     {
-      Sys.sleep(0.3) # minimal delay required so that values are transferred
+      # Sys.sleep(0.1) # minimal delay required so that values are transferred
       newTime <- as.character(Sys.time())
       updateSelectInput(
         session, "cooccurrences_time",
@@ -292,7 +292,6 @@ cooccurrencesServer <- function(input, output, session){
           exp_window = integer(), exp_partition = integer(), ll = integer(),
           rank_ll = integer()
         )
-        print(dt)
         return(dt)
       }
     })
@@ -310,7 +309,6 @@ cooccurrencesServer <- function(input, output, session){
         updateSelectInput(session, "kwic_object", selected = "partition")
         P <- get(input$graph_object, envir = .GlobalEnv)$partition
         values[["partitions"]][[P@name]] <- P
-        print(P@name)
         updateSelectInput(session, "kwic_partition", choices = P@name, selected = P@name)
         updateTextInput(
           session, "kwic_query",
