@@ -31,8 +31,8 @@ shinyUI(
     tabPanel(
       title = "cooccurrences",
       sidebarLayout(
-        sidebarPanel(polmineR.graph::cooccurrencesUiInput()),
-        mainPanel(polmineR.graph::cooccurrencesUiOutput())
+        sidebarPanel(cooccurrencesUiInput()),
+        mainPanel(cooccurrencesUiOutput())
       )
     ),
     

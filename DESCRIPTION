@@ -6,7 +6,7 @@ Date: 2017-04-26
 Author: Andreas Blaette
 Maintainer: Andreas Blaette <andreas.blaette@uni-due.de>
 Depends:
-    polmineR,
+    polmineR (>= 0.7.3),
     methods,
     RColorBrewer,
     shiny
@@ -39,6 +39,5 @@ Collate:
     'SVG.R'
     'Three.R'
     'polmineR.graph_package.R'
-    'shiny.R'
     'Ego.R'
 RoxygenNote: 5.0.1
