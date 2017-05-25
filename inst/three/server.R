@@ -17,6 +17,10 @@ shinyServer(function(input, output, session) {
     session$sendCustomMessage(type = 'setAnaglyphMode', input$graph_anaglyph_mode)
   })
   
+  observe({
+    session$sendCustomMessage(type = 'setBackgroundColor', input$graph_background_color)
+  })
+  
   session$onSessionEnded(function() {
     funs <- c(
       "graphServer",

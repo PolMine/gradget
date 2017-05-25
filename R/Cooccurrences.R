@@ -38,7 +38,10 @@
 #' library(polmineR)
 #' library(polmineR.graph)
 #' 
-#' merkel2008 <- partition("PLPRBT", speaker_name = "Angela Merkel", speaker_year = "2008", speaker_type = "speech", pAttribute = "word")
+#' merkel2008 <- partition(
+#'   "PLPRBT", speaker_name = "Angela Merkel", speaker_year = "2008", speaker_type = "speech",
+#'   pAttribute = "word", name = "merkel2008"
+#'   )
 #' termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(merkel2008, pAttribute = "word"))))
 #' 
 #' Merkel <- Cooccurrences$new(partition = merkel2008, pAttribute = "word", window = 5L, drop = termsToDrop)
@@ -46,7 +49,7 @@
 #' Merkel$trim(action = "drop", by.id = TRUE)
 #' Merkel$maths()
 #' 
-#' bt2008 <- partition("PLPRBT", speaker_year = "2008", pAttribute = "word")
+#' bt2008 <- partition("PLPRBT", speaker_year = "2008", pAttribute = "word", name = "bt2008")
 #' termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(bt2008, pAttribute = "word"))))
 #' BT2008 <- Cooccurrences$new(partition = bt2008, pAttribute = "word", window = 5L, drop = termsToDrop)
 #' BT2008$count()

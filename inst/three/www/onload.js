@@ -21,6 +21,9 @@ Shiny.addCustomMessageHandler("passCallibrationX", function(calibrateX) {calibra
 var calibrationY = 5;
 Shiny.addCustomMessageHandler("passCallibrationY", function(calibrateY) {calibrationY = calibrateY;});
 
+var backgroundColor = 0xcccccc;
+Shiny.addCustomMessageHandler("passBackgroundColor", function(calibrateY) {backgroundColor = backgroundColor;});
+
 
 function createScene(){
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
@@ -93,7 +96,7 @@ function createContainer(){
   
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight)
-  renderer.setClearColor(0xcccccc, 1);
+  renderer.setClearColor(backgroundColor, 1);
   
   container.appendChild( renderer.domElement );
   

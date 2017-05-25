@@ -110,7 +110,7 @@ Three <- setRefClass(
       "Fill three slot."
       
       if (is.null(V(.self$igraph)$z)) warning("coordinates for threedimensional display are not available")
-      threeObject <- three(.self$type, .self$bgColor, NULL, .self$adjust)
+      threeObject <- three(type = .self$type, bgColor = .self$bgColor, jsUrlPrefix = NULL, adjust = .self$adjust)
       if (is.null(V(.self$igraph)$color)){
         color <- "0xcccccc"
       } else {

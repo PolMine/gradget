@@ -39,7 +39,7 @@ graphServer <- function(input, output, session){
     {
       if (input$graph_dim == "2d"){
         
-        domElement <- .asDOMElement(cache[["igraph"]])
+        domElement <- .asDOMElement(values[["igraph"]])
         js$twoDimGraph(domElement)
         
       }

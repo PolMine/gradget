@@ -55,6 +55,23 @@ cooccurrencesServer <- function(input, output, session){
           dt2 <- dt2[dt2[["b_word"]] == a]
           dt <- data.table::rbindlist(list(dt1, dt2))
         }
+        
+        dt[, word_id := NULL][, i.word_id := NULL][, size_window := NULL][, rank_ll := NULL][, exp_partition := NULL]
+        print(colnames(dt))
+        setnames(dt, old = c("a_word", "b_word", "exp_window", "count_a", "count_b"), new = c("a", "b", "exp_ab", "obs_a", "obs_b"))
+        setcolorder(dt, neworder = c("a", "b", "obs_a", "obs_b", "count_ab", "exp_ab", "ll"))
+        
+        # will not be shown
+        attr(dt[["a"]], "label") <- "word1"
+        attr(dt[["b"]], "label") <- "word1"
+        attr(dt[["obs_a"]], "label") <- "word1"
+        attr(dt[["obs_b"]], "label") <- "word1"
+        attr(dt[["count_ab"]], "label") <- "word1"
+        attr(dt[["exp_ab"]], "label") <- "word1"
+
+        dt[, ll := round(ll, 2)][, exp_ab := round(exp_ab, 2)]
+
+        
         values[["dt"]] <- dt
         
         return(dt)
@@ -80,15 +97,16 @@ cooccurrencesServer <- function(input, output, session){
         }
         updateSelectInput(session, "kwic_object", selected = "partition")
         P <- get(input$graph_object, envir = .GlobalEnv)$partition
+        print(P@name)
         values[["partitions"]][[P@name]] <- P
         updateSelectInput(session, "kwic_partition", choices = P@name, selected = P@name)
         updateTextInput(
           session, "kwic_query",
-          value = statTab[["a_word"]][input$cooccurrences_table_rows_selected]
+          value = statTab[["a"]][input$cooccurrences_table_rows_selected]
           )
         updateTextInput(
           session, "kwic_neighbor",
-          value = statTab[["b_word"]][input$cooccurrences_table_rows_selected]
+          value = statTab[["b"]][input$cooccurrences_table_rows_selected]
         )
         updateSelectInput(session, "kwic_left", selected = get(input$cooccurrences_name, envir = .GlobalEnv)$window)
         updateSelectInput(session, "kwic_right", selected = get(input$cooccurrences_name, envir = .GlobalEnv)$window)
