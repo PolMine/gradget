@@ -2,8 +2,8 @@
 % Please edit documentation in R/Ego.R
 \docType{class}
 \name{Ego-class}
-\alias{Ego}
 \alias{Ego-class}
+\alias{Ego}
 \title{Analyse ego networks of queries.}
 \arguments{
 \item{coi}{corpus of interest, either a partition or name of a CWB corpus (character vector length 1)}
@@ -64,6 +64,7 @@ Reference class to organise the analysis of ego networks.
 
 \item{\code{verbose}}{logical, whether to print status messages}
 }}
+
 \section{Methods}{
 
 \describe{
@@ -79,6 +80,7 @@ Reference class to organise the analysis of ego networks.
 
 \item{\code{plot(with = "networkD3")}}{Plot graph using network D3, DiagrammeR or plotly.}
 }}
+
 \examples{
 \dontrun{
 use("taz.beta")
@@ -111,4 +113,3 @@ S$browse()
 
 }
 }
-

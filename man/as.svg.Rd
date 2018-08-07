@@ -2,8 +2,8 @@
 % Please edit documentation in R/SVG.R
 \docType{class}
 \name{SVG-class}
-\alias{SVG}
 \alias{SVG-class}
+\alias{SVG}
 \title{Make svg for collocations graph}
 \description{
 The resulting svg graph will have clickable nodes and edges. To use this functionality
@@ -38,6 +38,7 @@ you need to install FastRWeb and start it with sudo /var/FastRWeb/code/start
 
 \item{\code{pandocTab}}{logical, whether to format tables with pandoc}
 }}
+
 \section{Methods}{
 
 \describe{
@@ -64,9 +65,9 @@ returned invisibly.}
 
 \item{\code{textNodes(fontSize = 8, textOffset = 3)}}{Make text nodes.}
 }}
+
 \examples{
 \dontrun{
 bt17merkel <- partition("PLPRTXT", list(text_lp="17", text_speaker="Angela Merkel", text_type="speech"), tf="word")
 }
 }
-

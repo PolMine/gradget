@@ -2,8 +2,8 @@
 % Please edit documentation in R/polmineR.graph_package.R
 \docType{package}
 \name{polmineR.graph-package}
-\alias{polmineR.graph}
 \alias{polmineR.graph-package}
+\alias{polmineR.graph}
 \title{How to get started}
 \usage{
 polmineR.graph()
@@ -70,4 +70,3 @@ BT2008$maths()
 }
 }
 \keyword{package}
-

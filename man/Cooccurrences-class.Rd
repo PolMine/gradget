@@ -2,8 +2,8 @@
 % Please edit documentation in R/Cooccurrences.R
 \docType{class}
 \name{Cooccurrences-class}
-\alias{Cooccurrences}
 \alias{Cooccurrences-class}
+\alias{Cooccurrences}
 \title{Get cooccurrences.}
 \arguments{
 \item{keep}{character vector}
@@ -20,31 +20,32 @@
 Reference class to generate and manage cooccurrence statistics.
 }
 \details{
-To reduce the size of the data.table with the cooccurrence statistics, the 
+To reduce the size of the \code{data.table} with the cooccurrence statistics, the 
 parameters \code{keep} and \code{drop} provide tokens with tokens that will be kept and
 dropped, respectively. The parameters are used by the \code{trim} method.
 }
 \section{Fields}{
 
 \describe{
-\item{\code{partition}}{partition object}
+\item{\code{partition}}{The \code{partition} for which the .}
 
 \item{\code{pAttribute}}{character}
 
-\item{\code{keep}}{list of named character vectors, names are p-attributes}
+\item{\code{keep}}{A list of named character vectors, names are p-attributes.}
 
-\item{\code{drop}}{list of named character vectors, names are p-attributes}
+\item{\code{drop}}{A list of named character vectors, names are p-attributes.}
 
-\item{\code{method}}{statistical test ("ll")}
+\item{\code{method}}{The statistical test to use (such as "ll").}
 
-\item{\code{window}}{integer}
+\item{\code{window}}{An integer value.}
 
-\item{\code{verbose}}{logical}
+\item{\code{verbose}}{Logical}
 
-\item{\code{contextSizes}}{data.table}
+\item{\code{contextSizes}}{A \code{data.table}.}
 
-\item{\code{dt}}{data.table}
+\item{\code{dt}}{A \code{data.table}.}
 }}
+
 \section{Methods}{
 
 \describe{
@@ -67,6 +68,7 @@ not yet present, that is done first.}
 \item{\code{trim(action, by.id)}}{Trim the overall list of cooccurrences by dropping terms that are not frequent. Recommended
 to speed up computation of statistical test values.}
 }}
+
 \examples{
 \dontrun{
 
@@ -76,7 +78,10 @@ standard workflow:
 library(polmineR)
 library(polmineR.graph)
 
-merkel2008 <- partition("PLPRBT", speaker_name = "Angela Merkel", speaker_year = "2008", speaker_type = "speech", pAttribute = "word")
+merkel2008 <- partition(
+  "PLPRBT", speaker_name = "Angela Merkel", speaker_year = "2008", speaker_type = "speech",
+  pAttribute = "word", name = "merkel2008"
+  )
 termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(merkel2008, pAttribute = "word"))))
 
 Merkel <- Cooccurrences$new(partition = merkel2008, pAttribute = "word", window = 5L, drop = termsToDrop)
@@ -84,7 +89,7 @@ Merkel$count()
 Merkel$trim(action = "drop", by.id = TRUE)
 Merkel$maths()
 
-bt2008 <- partition("PLPRBT", speaker_year = "2008", pAttribute = "word")
+bt2008 <- partition("PLPRBT", speaker_year = "2008", pAttribute = "word", name = "bt2008")
 termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(bt2008, pAttribute = "word"))))
 BT2008 <- Cooccurrences$new(partition = bt2008, pAttribute = "word", window = 5L, drop = termsToDrop)
 BT2008$count()
@@ -108,4 +113,3 @@ Y$make()
 Y$browse()
 }
 }
-

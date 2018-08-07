@@ -26,6 +26,7 @@ Generate 3d graph with three.js
 
 \item{\code{fontOffset}}{a list}
 }}
+
 \section{Methods}{
 
 \describe{
@@ -35,6 +36,7 @@ Generate 3d graph with three.js
 
 \item{\code{make()}}{Fill three slot.}
 }}
+
 \examples{
 \dontrun{
 library(polmineR)
@@ -66,4 +68,3 @@ T$make()
 T$browse()
 }
 }
-

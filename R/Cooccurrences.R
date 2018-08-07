@@ -2,19 +2,19 @@
 #' 
 #' Reference class to generate and manage cooccurrence statistics.
 #' 
-#' To reduce the size of the data.table with the cooccurrence statistics, the 
+#' To reduce the size of the \code{data.table} with the cooccurrence statistics, the 
 #' parameters \code{keep} and \code{drop} provide tokens with tokens that will be kept and
 #' dropped, respectively. The parameters are used by the \code{trim} method.
 #' 
-#' @field partition partition object
+#' @field partition The \code{partition} for which the .
 #' @field pAttribute character
-#' @field keep list of named character vectors, names are p-attributes
-#' @field drop list of named character vectors, names are p-attributes
-#' @field method statistical test ("ll")
-#' @field window integer
-#' @field verbose logical
-#' @field contextSizes data.table
-#' @field dt data.table
+#' @field keep A list of named character vectors, names are p-attributes.
+#' @field drop A list of named character vectors, names are p-attributes.
+#' @field method The statistical test to use (such as "ll").
+#' @field window An integer value.
+#' @field verbose Logical
+#' @field contextSizes A \code{data.table}.
+#' @field dt A \code{data.table}.
 #' 
 #' @param keep character vector 
 #' @param returnXML logical, whether to return XML
