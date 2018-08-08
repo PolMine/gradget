@@ -58,13 +58,13 @@
 three <- function(
   G = G,
   type = "base",
-  settings = list(
-    bgColor = "0x888888",
-    nodeSize = 8,
-    edgeColor = "0xeeeeee", edgeWidth = 5,
-    fontSize = 16, fontColor = "#FFFFFF", fontOffset = c(x = 10, y = 10, z = 10)
-    ),
-  width = NULL, height = NULL
+  bgColor = "0x888888",
+  nodeSize = 8,
+  edgeColor = "0xeeeeee", edgeWidth = 5,
+  fontSize = 16, fontColor = "#FFFFFF", fontOffset = c(x = 10, y = 10, z = 10),
+  raycaster = FALSE,
+  width = NULL, height = NULL,
+  sizing_policy = htmlwidgets::sizingPolicy(padding = 0)
   ){
   if (is.null(V(G)$z)) warning("coordinates for threedimensional display are not available")
   
@@ -73,7 +73,7 @@ three <- function(
     y = V(G)$y,
     z = V(G)$z,
     color = if (is.null(V(G)$color)) "0xcccccc" else V(G)$color,
-    nodeSize = rep(settings[["nodeSize"]], times = length(V(G)))
+    nodeSize = rep(nodeSize, times = length(V(G)))
   )
   
   edgelistId <- get.edgelist(G, names = FALSE)
@@ -88,8 +88,8 @@ three <- function(
       y = V(G)[edgelistId[,2]]$y,
       z = V(G)[edgelistId[,2]]$z
     ),
-    color = settings[["edgeColor"]],
-    lwd = settings[["edgeWidth"]]
+    color = edgeColor,
+    lwd = edgeWidth
   )
   
   text_data <- list(
@@ -97,8 +97,8 @@ three <- function(
     y = V(G)$y,
     z = V(G)$z,
     name = V(G)$name,
-    fontColor = rep(settings[["fontColor"]], times = length(V(G))),
-    fontSize = settings[["fontSize"]]
+    fontColor = rep(fontColor, times = length(V(G))),
+    fontSize = fontSize
 #    , offset = settings[["fontOffset"]]
   )
   
@@ -129,12 +129,13 @@ three <- function(
       text_data = text_data
     ),
     settings = list(
-      bgColor = settings[["bgColor"]]
+      bgColor = bgColor,
+      raycaster = raycaster
     )
   )
   
   # create the widget
-  wdg <- htmlwidgets::createWidget(name = "three", x = x, width = width, height = height, package = "polmineR.graph")
+  wdg <- htmlwidgets::createWidget(name = "three", x = x, width = width, height = height, sizingPolicy = sizing_policy, package = "polmineR.graph")
   wdg
 
 }
