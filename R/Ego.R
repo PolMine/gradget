@@ -32,7 +32,7 @@
 #' 
 #' @examples 
 #' \dontrun{
-#' use("taz.beta")
+#' use("taz")
 #' E <- Ego$new(
 #'   coi = partition("TAZ", text_date = "2010.*", regex = TRUE),
 #'   query = "Islam",
@@ -58,8 +58,6 @@
 #' S$fontSize <- 12
 #' S$make()
 #' S$browse()
-#' 
-#' 
 #' }
 #' @importFrom igraph simplify
 #' @importFrom pbapply pblapply

@@ -1,8 +1,8 @@
 Package: polmineR.graph
 Type: Package
 Title: polmineR.graph
-Version: 0.2.5
-Date: 2017-04-26
+Version: 0.2.5.9001
+Date: 2018-08-07
 Author: Andreas Blaette
 Maintainer: Andreas Blaette <andreas.blaette@uni-due.de>
 Depends:
@@ -13,22 +13,25 @@ Depends:
 Imports:
     igraph,
     XML,
+    xml2,
     parallel,
     htmltools,
     pander,
     rjson,
     three,
     slam,
-    DT,
     data.table,
-    colourpicker,
     DiagrammeR,
     networkD3,
     pbapply,
     plotly,
-    shinyjs
+    RcppCWB,
+    svgPanZoom
 Suggests:
     knitr
+    DT,
+    colourpicker,
+    shinyjs
 VignetteBuilder: knitr
 LazyData: yes
 Description: Plugin for the polmineR-package to work with all cooccurrences in a corpus.

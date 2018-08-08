@@ -1,108 +1,164 @@
 #' Make svg for collocations graph
 #' 
-#' The resulting svg graph will have clickable nodes and edges. To use this functionality
-#' you need to install FastRWeb and start it with sudo /var/FastRWeb/code/start
+#' The resulting svg graph will have clickable nodes and edges.
 #' 
-#' @field edgeAttributes attributes of edges to maintain
-#' @field verticeAttributes attributes of vertices to maintain
-#' @field as.undirected logical, whether to turn object into directed graph
-#' @field object the collocation object
-#' @field  layout either "kamada.kawai" or "fruchterman.reingold"
-#' @field  width the width of the svg
-#' @field  height the height of the svg
-#' @field  margin margins of the svg
-#' @field  fontSize font size of the vertex labels
-#' @field  textOffset where to put text
-#' @field edgeAttributes attributes of edges for tooltips
-#' @field verticeAttributes attributes of attributes for tooltips
-#' @field  pandocTab logical, whether to format tables with pandoc
+#' @section Arguments:
+#' \describe{
+#'   \item{\code{edgeAttributes}}{attributes of edges to maintain}
+#'   \item{\code{verticeAttributes}}{attributes of vertices to maintain}
+#'   \item{\code{as.undirected}}{logical, whether to turn object into directed graph}
+#'   \item{\code{object}}{the collocation object}
+#'   \item{\code{layout}}{either "kamada.kawai" or "fruchterman.reingold"}
+#'   \item{\code{width}}{the width of the svg}
+#'   \item{\code{height}}{the height of the svg}
+#'   \item{\code{margin}}{margins of the svg}
+#'   \item{\code{fontSize}}{font size of the vertex labels}
+#'   \item{\code{textOffset}}{where to put text}
+#'   \item{\code{edgeAttributes}}{attributes of edges for tooltips}
+#'   \item{\code{verticeAttributes}}{attributes of attributes for tooltips}
+#'   \item{\code{pandocTab}}{logical, whether to format tables with pandoc}
+#' }
+#' @section Methods:
+#' \describe{
+#'   \item{\code{$initialize(x)}}{Create new SVG object from \code{x} as igraph-object.}
+#'   \item{\code{$plot()}}{Show SVG in viewer pane of RStudio.}
+#'   \item{\code{$browse()}}{Show SVG in browser. The xml/svg file is stored in a
+#'   temporary file, which is returned invisibly."}
+#'   \item{\code{$store(filename = tempfile(fileext=".html"))}}{Save XML/SVG to disk.}
+#'   \item{\code{$selectCommunity(community)}}{Select a community.}
+#'   \item{\code{$as.igraph(as.undirected = TRUE)}}{Turn SVG into igraph object.}
+#'   \item{\code{$textNodes(fontSize = 8, textOffset = 3)}}{Make text nodes.}
+#'   \item{\code{$html()}}{Turn into html.}
+#'   \item{\code{$makeNodes(radius = list(minSize = 5, tf = TRUE), pandocTab = TRUE)}}{Make nodes.}
+#'   \item{\code{$makeEdges()}}{Make edges.}
+#'   \item{\code{$make()}}{Create SVG.}
+#'   \item{\code{as_htmlwidget}}{Generate htmlwidget using svgPanZoom package.}
+#' }
 #' @importFrom htmltools HTML html_print
 #' @importFrom pander pandoc.table.return
+#' @importFrom xml2 xml_read
+#' @import svgPanZoom svgPanZoom
 #' @examples
 #' \dontrun{
-#' bt17merkel <- partition("PLPRTXT", list(text_lp="17", text_speaker="Angela Merkel", text_type="speech"), tf="word")
+#' library(polmineR)
+#' library(polmineR.graph)
+#' use("GermaParl")
+#' 
+#' merkel2008 <- partition(
+#'   "GERMAPARL", speaker = "Angela Merkel", year = 2008, interjection = FALSE,
+#'   p_attribute = "word", name = "merkel2008"
+#'   )
+#' terms_to_drop <- c(
+#'   polmineR::punctuation,
+#'   unlist(noise(p_attributes(merkel2008, p_attribute = "word")))
+#'   )
+#' 
+#' Merkel <- Cooccurrences$new(
+#'   partition = merkel2008,
+#'   p_attribute = "word",
+#'   window = 5L,
+#'   drop = terms_to_drop
+#' )
+#' Merkel$count()
+#' Merkel$trim(action = "drop", by.id = TRUE)
+#' Merkel$maths()
+#' 
+#' bt2008 <- partition(
+#'   "GERMAPARL",
+#'   year = 2008, interjection = "FALSE",
+#'   p_attribute = "word", name = "bt2008"
+#' )
+#' terms_to_drop <- c(
+#'   polmineR::punctuation,
+#'   unlist(noise(p_attributes(bt2008, p_attribute = "word")))
+#' )
+#' BT2008 <- Cooccurrences$new(
+#'   partition = bt2008,
+#'   p_attribute = "word",
+#'   window = 5L,
+#'   drop = terms_to_drop
+#' )
+#' BT2008$count()
+#' BT2008$trim(action = "drop", by.id = TRUE)
+#' BT2008$maths()
+#' 
+#' Merkel$featureSelection(reference = BT2008, included = TRUE)
+#' 
+#' G <- Merkel$as.igraph(as.undirected = TRUE)
+#' G <- addCommunities(G, method = "fastgreedy", weights = FALSE)
+#' G <- addCoordinates(G, layout = "kamada.kawai", dim = 3)
+#' G <- rescale(G, -1000, 1000)
+#' 
+#' Y <- SVG$new(G)
+#' Y$make()
+#' Y$as_htmlwidget()
+#' 
+#' Y$browse()
 #' }
-#' @rdname as.svg
+#' @rdname SVG
 #' @export SVG
 #' @importFrom XML xmlRoot
 #' @importFrom igraph V
-SVG <- setRefClass(
+SVG <- R6::R6Class(
   
-  Class = "SVG",
+  classname = "SVG",
   
-  fields = list(
+  public = list(
     
-    xml = "character",
-    igraph = "igraph",
-    width = "numeric",
-    height = "numeric",
-    margin = "numeric",
-    fontSize = "numeric",
-    textOffset = "numeric",
-    edgeAttributes = "character",
-    edgeColor = "character",
-    verticeAttributes = "character",
-    layout = "character",
-    pandocTab = "logical"
+    # fields
     
-  ),
-  
-  methods = list(
+    xml = NULL, # character
+    igraph = NULL, # igraph
+    width = NULL, # numeric
+    height = NULL, # numeric
+    margin = NULL, # numeric
+    fontSize = NULL, # numeric
+    textOffset = NULL, # numeric
+    edgeAttributes = NULL, # character
+    edgeColor = NULL, # character
+    verticeAttributes = NULL, # character
+    layout = NULL, # character
+    pandocTab = NULL, # logical
     
+    # methods
+
     initialize = function(x){
-      
-      "Create new SVG object."
-      
-      .self$igraph = x
-      .self$width = 400
-      .self$height = 400
-      .self$margin = 50
-      .self$fontSize = 8
-      .self$textOffset = 5
-      .self$edgeColor = "black"
-      .self$edgeAttributes = "ll"
-      .self$verticeAttributes = "tf"
-      .self$layout = "kamada.kawai"
-      .self$pandocTab = TRUE
+      self$igraph = x
+      self$width = 800
+      self$height = 800
+      self$margin = 50
+      self$fontSize = 8
+      self$textOffset = 5
+      self$edgeColor = "black"
+      self$edgeAttributes = "ll"
+      self$verticeAttributes = "tf"
+      self$layout = "kamada.kawai"
+      self$pandocTab = TRUE
       
     },
     
     plot = function(){
-      
-      "Show SVG in viewer pane of RStudio."
-      
-      if (length(S$xml) == 0) warning("Field 'xml' is empty, nothing to show.")
+      if (length(self$xml) == 0) warning("Field 'xml' is empty, nothing to show.")
       htmltools::html_print(html())
       },
     
     browse = function(){
-      
-      "Show SVG in browser. The xml/svg file is stored in a temporary file, which is
-      returned invisibly."
-      
-      if (length(S$xml) == 0) warning("Field 'xml' is empty, nothing to show.")
-      filename <- .self$store()
+      if (length(self$xml) == 0) warning("Field 'xml' is empty, nothing to show.")
+      filename <- self$store()
       browseURL(filename)
       invisible(filename)
     },
     
     
     store = function(filename = tempfile(fileext=".html")){
-      
-      "Save XML/SVG to disk."
-      
-      if (length(.self$xml) == 0) warning("Field 'xml' is empty, nothing to show.")
-      cat(.self$xml, file = filename)
+      if (length(self$xml) == 0) warning("Field 'xml' is empty, nothing to show.")
+      cat(self$xml, file = filename)
       return(filename)
-      
     },
     
 
     selectCommunity = function(community){
-      
-      "Select a community."
-      
-      xmlDoc <- xmlClone(.self$xml)
+      xmlDoc <- xmlClone(self$xml)
       root <- xmlRoot(xmlDoc)
       circleNodes <- unlist(lapply(
         community,
@@ -127,14 +183,11 @@ SVG <- setRefClass(
       foo <- addChildren(svgRoot, kids=textNodes)
       foo <- addChildren(svgRoot, kids=lineNodes)
       foo <- addChildren(svgRoot, kids=circleNodes)
-      .self$xml <- xmlDoc
+      self$xml <- xmlDoc
     },
     
     as.igraph = function(as.undirected = TRUE){
-      
-      "Turn SVG into igraph object."
-      
-      nodeTab <- do.call(rbind, xpathApply(.self$xml, "//circle", xmlAttrs))
+      nodeTab <- do.call(rbind, xpathApply(self$xml, "//circle", xmlAttrs))
       rownames(nodeTab) <- nodeTab[,"token"]
       id2token <- setNames(nodeTab[,"token"], nodeTab[,"nodeId"])
       #  count <- setNames(as.integer(nodeTab[,"count"]), nodeTab[,"token"])
@@ -142,7 +195,7 @@ SVG <- setRefClass(
       #  if ("community" %in% colnames(nodeTab)) community <- setNames(as.integer(nodeTab[,"community"]), nodeTab[,"token"])
       #  color <- setNames(nodeTab[,"fill"], nodeTab[,"token"])
       edgesPrep <- xpathSApply(
-        .self$xml, "//line",
+        self$xml, "//line",
         function(node){
           eAttr <- xmlAttrs(node)
           retval <- list(
@@ -166,10 +219,7 @@ SVG <- setRefClass(
     
     
     html = function(){
-      
-      "Turn into html."
-      
-      docHtml <- htmltools::HTML(.self$xml)
+      docHtml <- htmltools::HTML(self$xml)
       jsFunction <- "
       <script>
       function edgeClick(x, y){
@@ -189,37 +239,34 @@ SVG <- setRefClass(
     
 
     makeNodes = function(radius = list(minSize = 5, tf = TRUE), pandocTab = TRUE){
-      
-      "Make nodes."
-      
-      if (is.null(V(.self$igraph)$color)) V(.self$igraph)$color <- "blue"
+      if (is.null(V(self$igraph)$color)) V(self$igraph)$color <- "blue"
       if (radius[["tf"]] == TRUE){
-        if (!is.null(V(.self$igraph)$count)){
-          rad <- radius[["minSize"]] + sqrt(sqrt(V(.self$igraph)$count / 3.14159))  
+        if (!is.null(V(self$igraph)$count)){
+          rad <- radius[["minSize"]] + sqrt(sqrt(V(self$igraph)$count / 3.14159))  
         } else {
-          rad <- rep(radius[["minSize"]], times=length(V(.self$igraph)))
+          rad <- rep(radius[["minSize"]], times=length(V(self$igraph)))
         }
         
       } else {
-        rad <- rep(radius[["minSize"]], times = length(V(.self$igraph)))
+        rad <- rep(radius[["minSize"]], times = length(V(self$igraph)))
       }
       .circleNode <- function(i){
         community <- as.character(
-          if (is.null(V(.self$igraph)$community[i])) 0 else V(.self$igraph)$community[i]
+          if (is.null(V(self$igraph)$community[i])) 0 else V(self$igraph)$community[i]
           )
         if (pandocTab == TRUE) {
           tab <- data.frame(
             c("tf/abs", "tf/rel", "community"),
-            c(V(.self$igraph)[i]$count, V(.self$igraph)[i]$freq, community)
+            c(V(self$igraph)[i]$count, V(self$igraph)[i]$freq, community)
           )
-          colnames(tab) <- c("token", V(.self$igraph)[i]$name)
+          colnames(tab) <- c("token", V(self$igraph)[i]$name)
           tooltipTab <- pandoc.table.return(tab, justify=c("left", "left"))
           tooltipTab <- gsub("^\n(.*?)\n\n$", "\\1", tooltipTab)
         } else {
           tooltipTab <- paste(
-            V(.self$igraph)[i]$name, "\n",
-            "count: ", as.character(V(.self$igraph)[i]$count), "\n",
-            "freq: ", as.character(V(.self$igraph)[i]$tfRel), "\n",
+            V(self$igraph)[i]$name, "\n",
+            "count: ", as.character(V(self$igraph)[i]$count), "\n",
+            "freq: ", as.character(V(self$igraph)[i]$tfRel), "\n",
             "community: ", community,
             sep = "")
         }
@@ -231,33 +278,35 @@ SVG <- setRefClass(
           '<circle r="%s" stroke="%s" fill="%s" cx="%s" cy="%s" nodeId="%s" token="%s" count="%s" freq="%s" community="%s">%s</circle>',
           as.character(rad[i]),
           "black",
-          V(.self$igraph)[i]$color,
-          as.character(V(.self$igraph)[i]$x),
-          as.character(V(.self$igraph)[i]$y),
+          V(self$igraph)[i]$color,
+          as.character(V(self$igraph)[i]$x),
+          as.character(V(self$igraph)[i]$y),
           as.character(i),
-          V(.self$igraph)[i]$name,
-          "", #as.character(V(.self$igraph)[i]$tfAbs),
-          "", #as.character(V(.self$igraph)[i]$tfRel),
+          V(self$igraph)[i]$name,
+          "", #as.character(V(self$igraph)[i]$tfAbs),
+          "", #as.character(V(self$igraph)[i]$tfRel),
           community,
           tooltip
         )
         
       }
-      lapply(1:length(V(.self$igraph)), function(i) .circleNode(i))
+      lapply(1:length(V(self$igraph)), function(i) .circleNode(i))
     },
     
     makeEdges = function(){
-      
-      "Make edges."
-      
-      edgelistId <- get.edgelist(.self$igraph, names = FALSE)
-      edgelistString <- get.edgelist(.self$igraph, names = TRUE)
+      edgelistId <- get.edgelist(self$igraph, names = FALSE)
+      edgelistString <- get.edgelist(self$igraph, names = TRUE)
       
       lapply(
-        c(1:nrow(edgelistId)),
+        1L:nrow(edgelistId),
         function(i){
           
-          llValues <- as.character(round(unlist(E(.self$igraph)$ll[i]), 2))
+          if (!is.null(E(self$igraph)$ll)){
+            llValues <- as.character(round(unlist(E(self$igraph)$ll[i]), 2))
+          } else {
+            llValues <- rep(0, times = length(E(self$igraph)))
+          }
+
           tooltip <- sprintf(
             "<title>%s/n%s</title>",
             paste(edgelistString[i,1], " - ", edgelistString[i,2], " (ll: ", "XXXX", ")", sep=""),
@@ -265,11 +314,11 @@ SVG <- setRefClass(
           )
           sprintf(
             '<line style="%s" x1="%s" y1="%s" x2="%s" y2="%s" from="%s" to="%s" llXY="%s" llYX="%s" onclick="%s">%s</line>',
-            sprintf("stroke:%s; stroke-width:1px; fill:none;", .self$edgeColor),
-            as.character(V(.self$igraph)[edgelistId[i,1]]$x), #x1
-            as.character(V(.self$igraph)[edgelistId[i,1]]$y), #y1
-            as.character(V(.self$igraph)[edgelistId[i,2]]$x), #x2
-            as.character(V(.self$igraph)[edgelistId[i,2]]$y), #y2
+            sprintf("stroke:%s; stroke-width:1px; fill:none;", self$edgeColor),
+            as.character(V(self$igraph)[edgelistId[i,1]]$x), #x1
+            as.character(V(self$igraph)[edgelistId[i,1]]$y), #y1
+            as.character(V(self$igraph)[edgelistId[i,2]]$x), #x2
+            as.character(V(self$igraph)[edgelistId[i,2]]$y), #y2
             as.character(edgelistId[i,1]), #y2
             as.character(edgelistId[i,2]), #
             llValues[1],
@@ -281,51 +330,53 @@ SVG <- setRefClass(
     },
     
     textNodes = function(fontSize = 8, textOffset = 3){
-      
-      "Make text nodes."
-      
       lapply(
-        1:length(V(.self$igraph)),
+        1L:length(V(self$igraph)),
         function(i){
           sprintf(
             '<text fill="%s" style = "%s" x="%s" y="%s" onlick="%s" nodeId="%s">%s</text>',
             "red",
             paste("font-size:", as.character(fontSize), "px;font-family:sans-serif", sep=""),
-            as.character(V(.self$igraph)[i]$x + textOffset),
-            as.character(V(.self$igraph)[i]$y - textOffset),
-            paste("nodeClick('", V(.self$igraph)[i]$name, "')", sep = ""),
+            as.character(V(self$igraph)[i]$x + textOffset),
+            as.character(V(self$igraph)[i]$y - textOffset),
+            paste("nodeClick('", V(self$igraph)[i]$name, "')", sep = ""),
             as.character(i),
-            V(.self$igraph)[i]$name
+            V(self$igraph)[i]$name
           )
         })    
     },
     
-    
     make = function(verbose = TRUE){
-      
-      "Create XML."
-      
-      if (!is.null(.self$layout)){
+      if (!is.null(self$layout)){
         if (verbose) message("... calculate coordinates")
-        .self$igraph <- addCoordinates(.self$igraph, layout = .self$layout, dim = 2)
-        .self$igraph <- normalizeCoordinates(.self$igraph, width = .self$width, height = .self$height, margin = .self$margin)
+        self$igraph <- addCoordinates(self$igraph, layout = self$layout, dim = 2)
+        self$igraph <- normalizeCoordinates(self$igraph, width = self$width, height = self$height, margin = self$margin)
       }
       
       if (verbose) message("... generating edges")
-      edges <- .self$makeEdges()
+      edges <- self$makeEdges()
       if (verbose) message("... generating nodes")
-      nodes <- .self$makeNodes(pandocTab = .self$pandocTab)
+      nodes <- self$makeNodes(pandocTab = self$pandocTab)
       if (verbose) message("... generating text")
-      text <- .self$textNodes(.self$fontSize, .self$textOffset)  
+      text <- self$textNodes(self$fontSize, self$textOffset)  
       
       doc <- sprintf(
         '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width ="%s" height="%s">%s%s%s</svg>',
-        as.character(width), as.character(height),
+        as.character(self$width), as.character(self$height),
         paste(unlist(edges), collapse = ""),
         paste(unlist(nodes), collapse = ""),
         paste(unlist(text), collapse = "")
       )
-      .self$xml <- doc
+      self$xml <- doc
+    },
+    
+    as_htmlwidget = function(){
+      svgPanZoom(xml2::read_xml(Y$xml))
     }
+    
+  ),
+  
+  private = list(
+    
   )
 )

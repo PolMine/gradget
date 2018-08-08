@@ -36,6 +36,7 @@ addCoordinates = function(
 #' @param height new height
 #' @param margin margin
 #' @rdname igraph_utils
+#' @export normalizeCoordinates
 normalizeCoordinates = function(x, width, height, margin){
   coords <- cbind(V(x)$x, V(x)$y)
   normalize <- function(y) {
