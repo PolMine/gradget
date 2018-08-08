@@ -9,7 +9,8 @@ Depends:
     polmineR (>= 0.7.3),
     methods,
     RColorBrewer,
-    shiny
+    shiny,
+    htmlwidgets
 Imports:
     igraph,
     XML,
@@ -18,7 +19,6 @@ Imports:
     htmltools,
     pander,
     rjson,
-    three,
     slam,
     data.table,
     DiagrammeR,
@@ -28,7 +28,7 @@ Imports:
     RcppCWB,
     svgPanZoom
 Suggests:
-    knitr
+    knitr,
     DT,
     colourpicker,
     shinyjs

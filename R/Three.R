@@ -2,31 +2,40 @@
 #' 
 #' Generate 3d graph with three.js
 #' 
-#' @field type display mode
-#' @field bgColor a hex value
-#' @field nodeSize size of nods
-#' @field edgeColor a hex value
-#' @field edgeWidth defaults to 5
-#' @field fontColor a hex value
-#' @field fontSize defaults to 20
-#' @field fontOffset a list
+#' @param type display mode
+#' @param bgColor a hex value
+#' @param nodeSize size of nods
+#' @param edgeColor a hex value
+#' @param edgeWidth defaults to 5
+#' @param fontColor a hex value
+#' @param fontSize defaults to 20
+#' @param fontOffset a list
 #' 
-#' @name Three
-#' @rdname Three
-#' @export Three
-#' @importFrom rjson toJSON
-#' @importFrom three three points light text
+#' @name three
+#' @rdname three
+#' @export three
 #' @importFrom igraph V E
-#' @import three
 #' @examples
 #' \dontrun{
+#' library(polmineR.graph)
 #' library(polmineR)
-#' library(rjson)
+#' use("GermaParl")
 #' 
-#' merkel2008 <- partition("PLPRBT", speaker_name = "Angela Merkel", speaker_year = "2008", speaker_type = "speech", pAttribute = "word")
-#' termsToDrop <- c(polmineR::punctuation, unlist(noise(pAttributes(merkel2008, pAttribute = "word"))))
+#' merkel2008 <- partition(
+#'   "GERMAPARL",
+#'   speaker = "Angela Merkel", year = 2008, interjection = FALSE,
+#'   p_attribute = "word"
+#' )
 #' 
-#' Merkel <- Cooccurrences$new(partition = merkel2008, pAttribute = "word", window = 5L, drop = termsToDrop)
+#' terms_to_drop <- c(
+#'   polmineR::punctuation,
+#'   unlist(noise(p_attributes(merkel2008, p_attribute = "word")))
+#' )
+#' 
+#' Merkel <- Cooccurrences$new(
+#'   partition = merkel2008, p_attribute = "word", window = 5L,
+#'   drop = terms_to_drop
+#' )
 #' Merkel$count()
 #' Merkel$trim(action = "drop", by.id = TRUE)
 #' Merkel$maths()
@@ -36,146 +45,107 @@
 #' G <- Merkel$as.igraph()
 #' G <- addCoordinates(G, layout = "kamada.kawai", dim = 3)
 #' G <- addCommunities(G)
-#' G <- rescale(G, -275, 275)
+#' G <- rescale(G, -250, 250)
 #' 
-#' T <- Three$new(G, dir = "/Users/blaette/Lab/tmp/three")
-#' T$fontSize <- 18
-#' T$edgeWidth <- 6
-#' T$edgeColor <- "0x666666"
-#' T$bgColor <- "0x000000"
-#' T$fontColor <- "0xffffff"
-#' T$type <- "anaglyph"
-#' T$make()
-#' T$browse()
+#' three.settings <- list(
+#'   fontSize = 18, fontColor <- "0xffffff",
+#'   edgeWidth = 6, edgeColor = "0x666666",
+#'   bgColor = "0x000000"
+#'   )
+#' T <- three(G, type = "base")
+#' T
 #' }
-Three <- setRefClass(
+three <- function(
+  G = G,
+  type = "base",
+  settings = list(
+    bgColor = "0x888888",
+    nodeSize = 8,
+    edgeColor = "0xeeeeee", edgeWidth = 5,
+    fontSize = 16, fontColor = "#FFFFFF", fontOffset = c(x = 10, y = 10, z = 10)
+    ),
+  width = NULL, height = NULL
+  ){
+  if (is.null(V(G)$z)) warning("coordinates for threedimensional display are not available")
   
-  Class = "Three",
-  
-  fields = list(
-    
-    igraph = "igraph",
-    type = "character",
-    bgColor = "character",
-    nodeSize = "numeric",
-    edgeColor = "character",
-    edgeWidth = "numeric",
-    fontSize = "numeric",
-    fontColor = "character",
-    fontOffset = "numeric",
-    jsUrlPrefix = "character",
-    adjust = "list",
-    dir = "character",
-    three = "three"
-    
-  ),
-  
-  methods = list(
-    
-    initialize = function(x, dir = character()){
-      
-      "Create new Three object."
-      
-      .self$igraph <- x
-      .self$type = "base"
-      .self$bgColor = "0xcccccc"
-      .self$nodeSize = 5
-      .self$edgeColor = "0xeeeeee"
-      .self$edgeWidth = 5
-      .self$fontSize = 12 
-      .self$fontColor = "0x000000"
-      .self$fontOffset = c(x=10,y=10,z=10)
-      .self$jsUrlPrefix = character()
-      .self$adjust = list()
-      .self$dir = dir
-      
-    },
-    
-    rescale = function(){},
-    
-    store = function(directory = NULL){
-      if (length(.self$dir) > 0 && is.null(directory)) directory <-  .self$dir
-      message("storing at dir: ", directory)
-      three::store(.self$three, directory = directory) 
-    },
-    
-    browse = function(){
-      filenames <- T$store()
-      utils::browseURL(filenames["tmpFileJs"])
-    },
-    
-    
-    make = function(){
-      
-      "Fill three slot."
-      
-      if (is.null(V(.self$igraph)$z)) warning("coordinates for threedimensional display are not available")
-      threeObject <- three(type = .self$type, bgColor = .self$bgColor, jsUrlPrefix = NULL, adjust = .self$adjust)
-      if (is.null(V(.self$igraph)$color)){
-        color <- "0xcccccc"
-      } else {
-        color <- V(.self$igraph)$color
-      }
-      threeObject <- three::points(
-        threeObject,
-        coords = data.frame(x = V(.self$igraph)$x, y = V(.self$igraph)$y, z = V(.self$igraph)$z),
-        size = .self$nodeSize, color = color
-      )
-      vertexAttributes <- list.vertex.attributes(.self$igraph)
-      jsonVertexAttributes <- vertexAttributes[which(!vertexAttributes %in% c("name", "x", "y", "z", "color"))]
-      threeObject@json[["vertexData"]] <- toJSON(
-        lapply(
-          setNames(jsonVertexAttributes, jsonVertexAttributes),
-          function(name) get.vertex.attribute(.self$igraph, name)
-        ))  
-      edgelistId <- get.edgelist(.self$igraph, names = FALSE)
-      threeObject <- lines(
-        threeObject,
-        from = data.frame(x=V(.self$igraph)[edgelistId[,1]]$x, y=V(.self$igraph)[edgelistId[,1]]$y, z=V(.self$igraph)[edgelistId[,1]]$z),
-        to = data.frame(x=V(.self$igraph)[edgelistId[,2]]$x, y=V(.self$igraph)[edgelistId[,2]]$y, z=V(.self$igraph)[edgelistId[,2]]$z),
-        color = .self$edgeColor, lwd = .self$edgeWidth
-      )
-      edgeAttributes <- list.edge.attributes(.self$igraph)
-      if ("ll" %in% edgeAttributes){
-        threeObject@json[["edgeData"]] <- toJSON(
-          list(
-            a = get.edgelist(.self$igraph)[,1],
-            b = get.edgelist(.self$igraph)[,2],
-            a2b = sapply(get.edge.attribute(.self$igraph, "ll"), function(x) x[1]),
-            b2a = sapply(get.edge.attribute(.self$igraph, "ll"), function(x) x[2])
-          ))
-      }
-      threeObject <- text(
-        threeObject,
-        data.frame(
-          x = V(.self$igraph)$x+8, y = V(.self$igraph)$y, z = V(.self$igraph)$z,
-          row.names=V(.self$igraph)$name
-        ),
-        color=fontColor, fontSize, offset=fontOffset
-      )
-      #   threeObject <- light(
-      #     threeObject,
-      #     pointLight=list(
-      #       x=floor(max(V(object)$x)) + 100,
-      #       y=floor(max(V(object)$y)) + 100,
-      #       z=floor(max(V(object)$z)) + 100
-      #     )
-      #   )
-      .self$three <- threeObject
-    },
-    
-    as.json = function(){
-      
-      "Turn into json."
-      
-      paste(
-        unlist(lapply(
-          names(.self$three@json),
-          function(name){ paste(name, " = ", .self$three@json[[name]], ";", sep="") })
-        ),
-        collapse = "\n"
-      )    
-    }
+  point_data <- list(
+    x = V(G)$x,
+    y = V(G)$y,
+    z = V(G)$z,
+    color = if (is.null(V(G)$color)) "0xcccccc" else V(G)$color,
+    nodeSize = rep(settings[["nodeSize"]], times = length(V(G)))
   )
-)
+  
+  edgelistId <- get.edgelist(G, names = FALSE)
+  edge_data <- list(
+    from = list(
+      x = V(G)[edgelistId[,1]]$x,
+      y = V(G)[edgelistId[,1]]$y,
+      z = V(G)[edgelistId[,1]]$z
+    ),
+    to = list(
+      x = V(G)[edgelistId[,2]]$x,
+      y = V(G)[edgelistId[,2]]$y,
+      z = V(G)[edgelistId[,2]]$z
+    ),
+    color = settings[["edgeColor"]],
+    lwd = settings[["edgeWidth"]]
+  )
+  
+  text_data <- list(
+    x = V(G)$x + 8,
+    y = V(G)$y,
+    z = V(G)$z,
+    name = V(G)$name,
+    fontColor = rep(settings[["fontColor"]], times = length(V(G))),
+    fontSize = settings[["fontSize"]]
+#    , offset = settings[["fontOffset"]]
+  )
+  
+  # vertexAttributes <- list.vertex.attributes(G)
+  # jsonVertexAttributes <- vertexAttributes[which(!vertexAttributes %in% c("name", "x", "y", "z", "color"))]
+  # threeObject@json[["vertexData"]] <- toJSON(
+  #   lapply(
+  #     setNames(jsonVertexAttributes, jsonVertexAttributes),
+  #     function(name) get.vertex.attribute(G, name)
+  #   ))
+  
+  
+  # edgeAttributes <- list.edge.attributes(.self$igraph)
+  # if ("ll" %in% edgeAttributes){
+  #   threeObject@json[["edgeData"]] <- toJSON(
+  #     list(
+  #       a = get.edgelist(G)[,1],
+  #       b = get.edgelist(G)[,2],
+  #       a2b = sapply(get.edge.attribute(G, "ll"), function(x) x[1]),
+  #       b2a = sapply(get.edge.attribute(G, "ll"), function(x) x[2])
+  #     ))
+  # }
+  
+  x <- list(
+    data = list(
+      point_data = point_data,
+      edge_data = edge_data,
+      text_data = text_data
+    ),
+    settings = list(
+      bgColor = settings[["bgColor"]]
+    )
+  )
+  
+  # create the widget
+  wdg <- htmlwidgets::createWidget(name = "three", x = x, width = width, height = height, package = "polmineR.graph")
+  wdg
 
+}
+
+
+#' @export
+threeOutput <- function(outputId, width = "100%", height = "400px") {
+  shinyWidgetOutput(outputId, "three", width, height, package = "polmineR.graph")
+}
+#' @export
+renderThree <- function(expr, env = parent.frame(), quoted = FALSE) {
+  if (!quoted) { expr <- substitute(expr) } # force quoted
+  shinyRenderWidget(expr, threeOutput, env, quoted = TRUE)
+}

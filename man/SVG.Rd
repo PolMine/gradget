@@ -45,6 +45,7 @@ The resulting svg graph will have clickable nodes and edges.
   \item{\code{$makeNodes(radius = list(minSize = 5, tf = TRUE), pandocTab = TRUE)}}{Make nodes.}
   \item{\code{$makeEdges()}}{Make edges.}
   \item{\code{$make()}}{Create SVG.}
+  \item{\code{as_htmlwidget}}{Generate htmlwidget using svgPanZoom package.}
 }
 }
 
@@ -52,6 +53,7 @@ The resulting svg graph will have clickable nodes and edges.
 \dontrun{
 library(polmineR)
 library(polmineR.graph)
+use("GermaParl")
 
 merkel2008 <- partition(
   "GERMAPARL", speaker = "Angela Merkel", year = 2008, interjection = FALSE,
@@ -64,7 +66,7 @@ terms_to_drop <- c(
 
 Merkel <- Cooccurrences$new(
   partition = merkel2008,
-  pAttribute = "word",
+  p_attribute = "word",
   window = 5L,
   drop = terms_to_drop
 )
@@ -83,7 +85,7 @@ terms_to_drop <- c(
 )
 BT2008 <- Cooccurrences$new(
   partition = bt2008,
-  pAttribute = "word",
+  p_attribute = "word",
   window = 5L,
   drop = terms_to_drop
 )
@@ -91,20 +93,17 @@ BT2008$count()
 BT2008$trim(action = "drop", by.id = TRUE)
 BT2008$maths()
 
-Merkel2 <- copy(Merkel)
-Merkel2$featureSelection(reference = BT2008, included = TRUE)
+Merkel$featureSelection(reference = BT2008, included = TRUE)
 
 G <- Merkel$as.igraph(as.undirected = TRUE)
 G <- addCommunities(G, method = "fastgreedy", weights = FALSE)
 G <- addCoordinates(G, layout = "kamada.kawai", dim = 3)
 G <- rescale(G, -1000, 1000)
 
-Y <- SVG(G)
+Y <- SVG$new(G)
 Y$make()
-Y$plot()
-Y$width = 750
-Y$height = 750
-Y$make()
+Y$as_htmlwidget()
+
 Y$browse()
 }
 }

@@ -36,7 +36,7 @@
 #' }
 #' @importFrom htmltools HTML html_print
 #' @importFrom pander pandoc.table.return
-#' @importFrom xml2 xml_read
+#' @importFrom xml2 read_xml
 #' @import svgPanZoom svgPanZoom
 #' @examples
 #' \dontrun{
@@ -134,7 +134,7 @@ SVG <- R6::R6Class(
       self$verticeAttributes = "tf"
       self$layout = "kamada.kawai"
       self$pandocTab = TRUE
-      
+      invisible(self)
     },
     
     plot = function(){
@@ -360,18 +360,18 @@ SVG <- R6::R6Class(
       if (verbose) message("... generating text")
       text <- self$textNodes(self$fontSize, self$textOffset)  
       
-      doc <- sprintf(
+      self$xml <- sprintf(
         '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width ="%s" height="%s">%s%s%s</svg>',
         as.character(self$width), as.character(self$height),
         paste(unlist(edges), collapse = ""),
         paste(unlist(nodes), collapse = ""),
         paste(unlist(text), collapse = "")
       )
-      self$xml <- doc
+      invisible(self)
     },
     
     as_htmlwidget = function(){
-      svgPanZoom(xml2::read_xml(Y$xml))
+      svgPanZoom(xml2::read_xml(self$xml))
     }
     
   ),

@@ -83,7 +83,7 @@ Reference class to organise the analysis of ego networks.
 
 \examples{
 \dontrun{
-use("taz.beta")
+use("taz")
 E <- Ego$new(
   coi = partition("TAZ", text_date = "2010.*", regex = TRUE),
   query = "Islam",
@@ -109,7 +109,5 @@ S$height <- 500
 S$fontSize <- 12
 S$make()
 S$browse()
-
-
 }
 }

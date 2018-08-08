@@ -1,0 +1,8 @@
+dependencies:
+  - name: three
+    version: 69
+    src: htmlwidgets/lib/three-69
+    script: 
+      - three.min.js
+      - plugins/TrackballControls.js
+      - plugins/AnaglyphEffect.js
