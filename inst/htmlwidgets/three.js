@@ -7,20 +7,12 @@ HTMLWidgets.widget({
   factory: function(el, width, height) {
   
     // create our sigma object and bind it to the element
-    console.log(el);
     var container = document.createElement( 'div' );
     el.appendChild( container );
-
+    
+    
     return {
       renderValue: function(x) {
-        
-        // it is necessary to get rid of the padding because if not,
-        // coordinates will be twisted and the raycaster will not work
-        if (x.settings.raycaster == true){
-          // document.getElementsByTagName("body")[0].style.padding = "0px";
-          // document.getElementById("htmlwidget_container").style.top ="0px";
-          // document.getElementById("htmlwidget_container").style.left ="0px";
-        }
         
         // variables needed one way or the other
         var camera, controls, scene, renderer;
@@ -28,9 +20,12 @@ HTMLWidgets.widget({
         // variables needed for raycaster
         if (x.settings.raycaster == true){
           var raycaster, INTERSECTED, MATCH;
-          window.mouseX = 100; // just to start with any value?
-          window.mouseY = 100; // just to start with any value?
+          window.mouseX;
+          window.mouseY;
+          window.popupX = 100;
+          window.popupY = 100;
         };
+        
 
         function init(){
           
@@ -90,60 +85,81 @@ HTMLWidgets.widget({
             scene.add(line);
           };
           
-          for (var i = 0; i < x.data.point_data.x.length; i++) {
-            var geometry = new THREE.SphereGeometry( x.data.point_data.nodeSize[i], 16, 16 );
+          for (var i = 0; i < x.data.vertex_data.x.length; i++) {
+            var geometry = new THREE.SphereGeometry( x.data.vertex_data.nodeSize[i], 16, 16 );
             var material = new THREE.MeshLambertMaterial(
-              {color: x.data.point_data.color[i], shading: THREE.FlatShading }
+              {color: x.data.vertex_data.color[i], shading: THREE.FlatShading }
             );
             var mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(x.data.point_data.x[i], x.data.point_data.y[i], x.data.point_data.z[i]);
+            mesh.position.set(x.data.vertex_data.x[i], x.data.vertex_data.y[i], x.data.vertex_data.z[i]);
             mesh.name = '' + i;
             scene.add(mesh);
           };
           
-          for (var i = 0; i < x.data.text_data.name.length; i++){
+          for (var i = 0; i < x.data.vertex_data.name.length; i++){
             var canvas = document.createElement('canvas');
             canvas.width = size;
             canvas.height = size;
             var context = canvas.getContext('2d');
-            context.fillStyle = x.data.text_data.fontColor[i];
+            context.fillStyle = x.data.vertex_data.fontColor[i];
             context.textAlign = 'center';
-            context.font = x.data.text_data.fontSize + 'px Arial';
-            context.fillText(x.data.text_data.name[i], size / 2, size / 2);
+            context.font = x.data.vertex_data.fontSize + 'px Arial';
+            context.fillText(x.data.vertex_data.name[i], size / 2, size / 2);
             var amap = new THREE.Texture(canvas);
             amap.needsUpdate = true;
             var mat = new THREE.SpriteMaterial({map: amap, transparent: false, useScreenCoordinates: false, color: 0xffffff});
             var sp = new THREE.Sprite(mat);
             sp.scale.set( 100, 100, 10 );
-            sp.position.set(x.data.text_data.x[i] - 10, x.data.text_data.y[i] - 10, x.data.text_data.z[i] - 10);
+            sp.position.set(x.data.vertex_data.x[i] - 10, x.data.vertex_data.y[i] - 10, x.data.vertex_data.z[i] - 10);
             scene.add(sp);
           };
 
-          // var container = document.createElement( 'div' );
-          // document.appendChild( container );
-          // document.body.appendChild( container );
-          
+
           // this is a play to output information from raycaster
           
           if (x.settings.raycaster == true){
+            raycaster = new THREE.Raycaster();
+          };
+          
+          if (x.settings.raycaster == true){
+            console.log("creating info div");
             var info = document.createElement( 'div' );
+            container.appendChild( info );
+            info.setAttribute("id", "info");
+            info.innerHTML = "no info so far";
+
             info.style.position = 'absolute';
             info.style.top = '10px';
-            info.style.width = '100%';
+            info.style.left = '100px';
+            // info.style.width = '80px';
+            info.style.width = 'auto';
+            info.style.height = 'auto';
+            info.style.padding = "0.5em";
             info.style.textAlign = 'left';
-            info.setAttribute("id", "info");
-            info.innerHTML = "empty\nempty";
-            container.appendChild( info );
-          
-            raycaster = new THREE.Raycaster();
+            info.style.opacity = 0.65;
+            info.style.fontFamily = "arial";
+            info.style.fontSize = "12px";
+            info.style.borderRadius = "5px";
+            info.style.display = "none"; // to hide element at first
+            info.style.backgroundColor = "white";
           };
 
 
           renderer = new THREE.WebGLRenderer();
-          renderer.setSize(window.innerWidth, window.innerHeight)
+          // renderer.setSize(window.innerWidth, window.innerHeight);
+          renderer.setSize(width, height);
           renderer.setClearColor(eval(x.settings.bgColor), 1);
           // renderer.sortObjects = false; // from raycaster.html
           container.appendChild( renderer.domElement );
+          
+          if (x.settings.anaglyph == true){
+            var width3D = window.innerWidth || 2;
+            var height3D = window.innerHeight || 2;
+
+            effect = new THREE.AnaglyphEffect( renderer ); // for anaglyph effect
+            effect.setSize( width3D, height3D ); // for anaglyph effect
+          };
+
           
           window.addEventListener( 'resize', onWindowResize, false );
           if (x.settings.raycaster == true){
@@ -164,7 +180,10 @@ HTMLWidgets.widget({
           event.preventDefault();
           window.mouseX = ( event.clientX / window.innerWidth ) * 2 - 1;
           window.mouseY = - ( event.clientY / window.innerHeight ) * 2 + 1;
-          document.getElementById("info").innerHTML = "" + camera.position.x;
+          if (x.settings.raycaster == true){
+            window.popupX = event.clientX;
+            window.popupY = event.clientY;
+          };
           render()
         }
 
@@ -189,20 +208,22 @@ HTMLWidgets.widget({
                 if (intersects[i].object instanceof THREE.Sprite == false){
   
                   if ( intersects[i].object instanceof THREE.Line ) {
-   
-                    j = eval(intersects[i].object.id) - 5 - 0;
-                    var edgeInfo = "edge no: " + j;
-                    // var edgeDataColumns = Object.keys(edgeData);
-                    // for (var k = 0; k < edgeDataColumns.length; k++){
-                    //   edgeInfo = edgeInfo + "<br/>" + edgeDataColumns[k] + ": " + edgeData[edgeDataColumns[k]][j];
-                    // }
-                    document.getElementById("info").innerHTML = edgeInfo;
+                    info.style.display = "block";
+                    info.style.top = window.popupY + 10 + 'px';
+                    info.style.left = window.popupX + 'px';
+                    j = eval(intersects[i].object.id) - 7;
+                    var edgeInfo = x.data.edge_data.names[j] + '<br/>ll: ' + x.data.edge_data.ll[i] + '<br/>count:  ' + x.data.edge_data.count[j];
+                    info.innerHTML = edgeInfo;
+
   
       			      } else if ( intersects[i].object instanceof THREE.Mesh ) {
-  
-                    j = eval(intersects[i].object.id) - 5;
-                    vertexInfo = 'This is:' + j;
-                    document.getElementById("info").innerHTML = vertexInfo;
+      			        info.style.display = "block";
+                    info.style.top = window.popupY + 10 + 'px';
+                    info.style.left = window.popupX + 'px';
+
+                    j = eval(intersects[i].object.id) - 7 - x.data.edge_data.from.x.length;
+                    vertexInfo = x.data.vertex_data.name[j] + '<br/>count: ' + x.data.vertex_data.count[j];
+                    info.innerHTML = vertexInfo;
                   
                   
         		      }
@@ -212,30 +233,36 @@ HTMLWidgets.widget({
         		}
             
             if ( INTERSECTED != MATCH ) {
-  
   						if ( INTERSECTED ) {
     					  if ( INTERSECTED instanceof THREE.Line ) {
+                  info.style.display = "none";
                   INTERSECTED.material.setValues( {color: eval(x.data.edge_data.color) });
         		    } if ( INTERSECTED instanceof THREE.Mesh ) {
+                  info.style.display = "none";
                   INTERSECTED.material.setValues( { color: INTERSECTED.currentHex });
                   // INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
                 }              
   						}
   
   						INTERSECTED = MATCH;            
+              
               if ( INTERSECTED instanceof THREE.Line ) {
-                 var currentHex = INTERSECTED.material.color.getHexString();
-                 INTERSECTED.material.setValues({color: 0xff0000})
+                info.style.display = "none";
+                var currentHex = INTERSECTED.material.color.getHexString();
+                INTERSECTED.material.setValues({color: 0xff0000})
               } else if ( INTERSECTED instanceof THREE.Mesh ) {
-               INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
-               // INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-               INTERSECTED.material.setValues( { color: 0xff0000 });
-               // INTERSECTED.material.emissive.setHex( 0xff0000 );
+                info.style.display = "none";
+                INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
+                // INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+                INTERSECTED.material.setValues( { color: 0xff0000 });
+                // INTERSECTED.material.emissive.setHex( 0xff0000 );
               }
   
   					}
   
   				} else {
+  				  
+  				  info.style.display = "none";
   
   					if ( INTERSECTED ) {
               if ( INTERSECTED instanceof THREE.Line ) {
@@ -255,8 +282,12 @@ HTMLWidgets.widget({
             }
 
           
-          renderer.render( scene, camera );
-          
+          if (x.settings.anaglyph == true){
+            effect.render( scene, camera );
+          } else {
+            renderer.render( scene, camera );
+          }
+
         } 
             
         init();

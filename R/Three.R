@@ -14,7 +14,7 @@
 #' @name three
 #' @rdname three
 #' @export three
-#' @importFrom igraph V E
+#' @importFrom igraph V E get.edge.attribute
 #' @examples
 #' \dontrun{
 #' library(polmineR.graph)
@@ -47,12 +47,7 @@
 #' G <- addCommunities(G)
 #' G <- rescale(G, -250, 250)
 #' 
-#' three.settings <- list(
-#'   fontSize = 18, fontColor <- "0xffffff",
-#'   edgeWidth = 6, edgeColor = "0x666666",
-#'   bgColor = "0x000000"
-#'   )
-#' T <- three(G, type = "base")
+#' T <- three(G, type = "base", raycaster = TRUE)
 #' T
 #' }
 three <- function(
@@ -63,79 +58,71 @@ three <- function(
   edgeColor = "0xeeeeee", edgeWidth = 5,
   fontSize = 16, fontColor = "#FFFFFF", fontOffset = c(x = 10, y = 10, z = 10),
   raycaster = FALSE,
+  anaglyph = FALSE,
   width = NULL, height = NULL,
   sizing_policy = htmlwidgets::sizingPolicy(padding = 0)
   ){
   if (is.null(V(G)$z)) warning("coordinates for threedimensional display are not available")
   
-  point_data <- list(
+  vertex_data <- list(
     x = V(G)$x,
     y = V(G)$y,
     z = V(G)$z,
     color = if (is.null(V(G)$color)) "0xcccccc" else V(G)$color,
-    nodeSize = rep(nodeSize, times = length(V(G)))
+    nodeSize = rep(nodeSize, times = length(V(G))),
+    count = V(G)$count,
+    name = V(G)$name,
+    fontColor = rep(fontColor, times = length(V(G))),
+    fontSize = fontSize
   )
   
   edgelistId <- get.edgelist(G, names = FALSE)
   edge_data <- list(
     from = list(
+      name = get.edgelist(G)[,1],
       x = V(G)[edgelistId[,1]]$x,
       y = V(G)[edgelistId[,1]]$y,
       z = V(G)[edgelistId[,1]]$z
     ),
     to = list(
+      name = get.edgelist(G)[,2],
       x = V(G)[edgelistId[,2]]$x,
       y = V(G)[edgelistId[,2]]$y,
       z = V(G)[edgelistId[,2]]$z
     ),
+    names = attr(E(G), "vnames"),
+    ll = unlist(lapply(
+      get.edge.attribute(G, "ll"), function(x) paste(round(x, 2), collapse = "|")
+      )),
+    count = unlist(lapply(get.edge.attribute(G, "ab_count"), mean)),
     color = edgeColor,
     lwd = edgeWidth
   )
   
-  text_data <- list(
-    x = V(G)$x + 8,
-    y = V(G)$y,
-    z = V(G)$z,
-    name = V(G)$name,
-    fontColor = rep(fontColor, times = length(V(G))),
-    fontSize = fontSize
-#    , offset = settings[["fontOffset"]]
-  )
-  
-  # vertexAttributes <- list.vertex.attributes(G)
-  # jsonVertexAttributes <- vertexAttributes[which(!vertexAttributes %in% c("name", "x", "y", "z", "color"))]
-  # threeObject@json[["vertexData"]] <- toJSON(
-  #   lapply(
-  #     setNames(jsonVertexAttributes, jsonVertexAttributes),
-  #     function(name) get.vertex.attribute(G, name)
-  #   ))
-  
-  
-  # edgeAttributes <- list.edge.attributes(.self$igraph)
-  # if ("ll" %in% edgeAttributes){
-  #   threeObject@json[["edgeData"]] <- toJSON(
-  #     list(
-  #       a = get.edgelist(G)[,1],
-  #       b = get.edgelist(G)[,2],
-  #       a2b = sapply(get.edge.attribute(G, "ll"), function(x) x[1]),
-  #       b2a = sapply(get.edge.attribute(G, "ll"), function(x) x[2])
-  #     ))
-  # }
-  
   x <- list(
     data = list(
-      point_data = point_data,
-      edge_data = edge_data,
-      text_data = text_data
+      vertex_data = vertex_data,
+      edge_data = edge_data
     ),
     settings = list(
       bgColor = bgColor,
-      raycaster = raycaster
+      raycaster = raycaster,
+      anaglyph = anaglyph
     )
   )
   
   # create the widget
-  wdg <- htmlwidgets::createWidget(name = "three", x = x, width = width, height = height, sizingPolicy = sizing_policy, package = "polmineR.graph")
+  wdg <- htmlwidgets::createWidget(
+    name = "three", x = x, elementId = "three",
+    width = width, height = height,
+    sizingPolicy = sizingPolicy(
+      padding = 0,
+      viewer.padding = 0,
+      browser.padding = 0,
+      knitr.defaultHeight = 800, knitr.defaultWidth = 600
+    ),
+    package = "polmineR.graph"
+    )
   wdg
 
 }

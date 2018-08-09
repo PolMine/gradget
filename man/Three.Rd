@@ -4,9 +4,11 @@
 \alias{three}
 \title{Generate and manage 3d graph.}
 \usage{
-three(G, type = "base", settings = list(bgColor = "0xcccccc", nodeSize = 5,
-  edgeColor = "0xeeeeee", edgeWidth = 5, fontSize = 12, fontColor = "0x000000",
-  fontOffset = c(x = 10, y = 10, z = 10)), width = NULL, height = NULL)
+three(G = G, type = "base", bgColor = "0x888888", nodeSize = 8,
+  edgeColor = "0xeeeeee", edgeWidth = 5, fontSize = 16,
+  fontColor = "#FFFFFF", fontOffset = c(x = 10, y = 10, z = 10),
+  raycaster = FALSE, anaglyph = FALSE, width = NULL, height = NULL,
+  sizing_policy = htmlwidgets::sizingPolicy(padding = 0))
 }
 \arguments{
 \item{type}{display mode}
@@ -19,9 +21,9 @@ three(G, type = "base", settings = list(bgColor = "0xcccccc", nodeSize = 5,
 
 \item{edgeWidth}{defaults to 5}
 
-\item{fontColor}{a hex value}
-
 \item{fontSize}{defaults to 20}
+
+\item{fontColor}{a hex value}
 
 \item{fontOffset}{a list}
 }
@@ -30,6 +32,7 @@ Generate 3d graph with three.js
 }
 \examples{
 \dontrun{
+library(polmineR.graph)
 library(polmineR)
 use("GermaParl")
 
@@ -38,12 +41,16 @@ merkel2008 <- partition(
   speaker = "Angela Merkel", year = 2008, interjection = FALSE,
   p_attribute = "word"
 )
+
 terms_to_drop <- c(
   polmineR::punctuation,
   unlist(noise(p_attributes(merkel2008, p_attribute = "word")))
 )
 
-Merkel <- Cooccurrences$new(partition = merkel2008, p_attribute = "word", window = 5L, drop = terms_to_trop)
+Merkel <- Cooccurrences$new(
+  partition = merkel2008, p_attribute = "word", window = 5L,
+  drop = terms_to_drop
+)
 Merkel$count()
 Merkel$trim(action = "drop", by.id = TRUE)
 Merkel$maths()
@@ -53,9 +60,9 @@ Merkel$dt <- Merkel$dt[1:250]
 G <- Merkel$as.igraph()
 G <- addCoordinates(G, layout = "kamada.kawai", dim = 3)
 G <- addCommunities(G)
-G <- rescale(G, -275, 275)
+G <- rescale(G, -250, 250)
 
-three.settings <- list(fontSize = 18, edgeWidth = 6, edgeColor = "0x666666", bgColor = "0x000000", fontColor <- "0xffffff"
-T <- three(G, type "anaglyph", settings = three.settings)
+T <- three(G, type = "base", raycaster = TRUE)
+T
 }
 }

@@ -536,14 +536,14 @@ Cooccurrences <- R6::R6Class(
       return(retval)
     },
     
-    as.igraph = function(edgeAttributes = "ll", verticeAttributes = NULL, as.undirected = TRUE){
+    as.igraph = function(edgeAttributes = c("ll", "ab_count", "rank_ll"), verticeAttributes = "count", as.undirected = TRUE){
       if (!all(edgeAttributes %in% colnames(self$dt))){
         warning("edgeAttribute supplied is not available")
       }
       tab <- as.data.frame(self$dt)
       aColsStr <- paste("a", self$p_attribute, sep = "_")
       bColsStr <- paste("b", self$p_attribute, sep = "_")
-      if (length(self$p_attribute) == 1){
+      if (length(self$p_attribute) == 1L){
         tab[["node"]] <- tab[[aColsStr]]
         tab[["collocate"]] <- tab[[bColsStr]]
       } else {
@@ -553,10 +553,10 @@ Cooccurrences <- R6::R6Class(
       g <- graph.data.frame(tab[, c("node", "collocate", edgeAttributes)])
       if ("count" %in% verticeAttributes){
         TF <- self$partition@stat # this will be a data.frame
-        if (self$p_attribute == 1){
-          TF[,key := TF[[self$p_attribute]] ]
+        if (length(self$p_attribute) == 1){
+          TF[, "key" := TF[[self$p_attribute]] ]
         } else{
-          TF[, key := apply(TF, 1, function(row) paste(row[self$p_attribute], collapse = "//"))]
+          TF[, "key" := apply(TF, 1, function(row) paste(row[self$p_attribute], collapse = "//"))]
         }
         setkey(TF, key)
         tfVector <- TF[names(V(g))][["count"]]
