@@ -37,8 +37,8 @@
 #' 
 #' bt17merkelCollTrimmed <- subset(bt17merkelColl, rank_ll <= 250)
 #' iMerkel <- asIgraph(bt17merkelCollTrimmed)
-#' iMerkelComm <- addCommunities(iMerkel, method="fastgreedy", weights=FALSE)
-#' iMerkel3d <- addCoordinates(iMerkelComm, layout = "kamada.kawai", dim = 3)
+#' iMerkelComm <- igraph_add_communities(iMerkel, method="fastgreedy", weights=FALSE)
+#' iMerkel3d <- igraph_add_coordinates(iMerkelComm, layout = "kamada.kawai", dim = 3)
 #' iMerkel3d <- three::rescale(iMerkel3d, -400, 400)
 #' t <- polmineR.graph::as.three(iMerkel3d, bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))
 #' t <- polmineR.graph::as.three(iMerkel3d, type="raycaster", bgColor="0xcccccc", fontSize=12, fontColor="0x000000", nodeSize=4, edgeColor="0xeeeeee", edgeWidth=3, fontOffset=c(x=10,y=10,z=10))

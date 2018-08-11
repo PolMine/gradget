@@ -123,8 +123,8 @@ G <- simplify(
   G, remove.multiple = TRUE, remove.loops = TRUE
 #  , edge.attr.com = list(weight = "mean", name = "concat")
   )
-G <- addCommunities(G, method = "fastgreedy", weights = FALSE)
-G <- addCoordinates(G, layout = "kamada.kawai", dim = 3)
+G <- igraph_add_communities(G, method = "fastgreedy", weights = FALSE)
+G <- igraph_add_coordinates(G, layout = "kamada.kawai", dim = 3)
 ```
 
 This is an object that can be plotted. Of course, a lot of further beauty can be added using the 
@@ -267,7 +267,7 @@ makeSVG <- function(sAttrValue, label){
   Gmin <- make_ego_graph(G, order = graph.order, nodes = termOfInterest)[[1]]
   Gmin <- simplify(Gmin, remove.multiple = TRUE, remove.loops = TRUE)
   Gmin <- addCommunities(Gmin)
-  Gmin <- addCoordinates(Gmin, layout = "kamada.kawai", dim = 2)
+  Gmin <- igraph_add_coordinates(Gmin, layout = "kamada.kawai", dim = 2)
   
   # turn into SVG
   S <- SVG$new(Gmin)

@@ -101,8 +101,8 @@ Merkel2 <- copy(Merkel)
 Merkel2$featureSelection(reference = BT2008, included = TRUE)
 
 G <- Merkel$as.igraph(as.undirected = TRUE)
-G <- addCommunities(G, method = "fastgreedy", weights = FALSE)
-G <- addCoordinates(G, layout = "kamada.kawai", dim = 3)
+G <- igraph_add_communities(G, method = "fastgreedy", weights = FALSE)
+G <- igraph_add_coordinates(G, layout = "kamada.kawai", dim = 3)
 G <- rescale(G, -1000, 1000)
 
 Y <- SVG(G)

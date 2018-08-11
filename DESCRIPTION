@@ -26,12 +26,13 @@ Imports:
     pbapply,
     plotly,
     RcppCWB,
-    svgPanZoom
+    svgPanZoom,
+    shinyjs,
+    miniUI
 Suggests:
     knitr,
     DT,
-    colourpicker,
-    shinyjs
+    colourpicker
 VignetteBuilder: knitr
 LazyData: yes
 Description: Plugin for the polmineR-package to work with all cooccurrences in a corpus.
@@ -43,4 +44,5 @@ Collate:
     'Three.R'
     'polmineR.graph_package.R'
     'Ego.R'
+    'granny.R'
 RoxygenNote: 6.0.1

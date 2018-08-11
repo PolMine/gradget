@@ -85,8 +85,8 @@
 #' Merkel$featureSelection(reference = BT2008, included = TRUE)
 #' 
 #' G <- Merkel$as.igraph(as.undirected = TRUE)
-#' G <- addCommunities(G, method = "fastgreedy", weights = FALSE)
-#' G <- addCoordinates(G, layout = "kamada.kawai", dim = 3)
+#' G <- igraph_add_communities(G, method = "fastgreedy", weights = FALSE)
+#' G <- igraph_add_coordinates(G, layout = "kamada.kawai", dim = 3)
 #' G <- rescale(G, -1000, 1000)
 #' 
 #' Y <- SVG$new(G)
@@ -349,8 +349,8 @@ SVG <- R6::R6Class(
     make = function(verbose = TRUE){
       if (!is.null(self$layout)){
         if (verbose) message("... calculate coordinates")
-        self$igraph <- addCoordinates(self$igraph, layout = self$layout, dim = 2)
-        self$igraph <- normalizeCoordinates(self$igraph, width = self$width, height = self$height, margin = self$margin)
+        self$igraph <- igraph_add_coordinates(self$igraph, layout = self$layout, dim = 2)
+        self$igraph <- igraph_normalize_coordinates(self$igraph, width = self$width, height = self$height, margin = self$margin)
       }
       
       if (verbose) message("... generating edges")

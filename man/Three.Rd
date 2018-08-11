@@ -4,28 +4,11 @@
 \alias{three}
 \title{Generate and manage 3d graph.}
 \usage{
-three(G = G, type = "base", bgColor = "0x888888", nodeSize = 8,
-  edgeColor = "0xeeeeee", edgeWidth = 5, fontSize = 16,
-  fontColor = "#FFFFFF", fontOffset = c(x = 10, y = 10, z = 10),
-  raycaster = FALSE, anaglyph = FALSE, width = NULL, height = NULL,
-  sizing_policy = htmlwidgets::sizingPolicy(padding = 0))
+three(x, bgColor = "0x888888", raycaster = TRUE, anaglyph = FALSE,
+  width = NULL, height = NULL)
 }
 \arguments{
-\item{type}{display mode}
-
-\item{bgColor}{a hex value}
-
-\item{nodeSize}{size of nods}
-
-\item{edgeColor}{a hex value}
-
-\item{edgeWidth}{defaults to 5}
-
-\item{fontSize}{defaults to 20}
-
-\item{fontColor}{a hex value}
-
-\item{fontOffset}{a list}
+\item{bgColor}{Background color, a hex value (defaults to "0x888888").}
 }
 \description{
 Generate 3d graph with three.js
@@ -58,11 +41,14 @@ Merkel$maths()
 Merkel$dt <- Merkel$dt[1:250]
 
 G <- Merkel$as.igraph()
-G <- addCoordinates(G, layout = "kamada.kawai", dim = 3)
-G <- addCommunities(G)
+G <- igraph_add_coordinates(G, layout = "kamada.kawai", dim = 3)
+G <- igraph_add_communities(G)
 G <- rescale(G, -250, 250)
 
-T <- three(G, type = "base", raycaster = TRUE)
+T <- three(
+  igraph_as_gradget_data(G),
+  raycaster = TRUE
+)
 T
 }
 }

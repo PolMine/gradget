@@ -1,13 +1,65 @@
+#' Convert igraph object to gradget data.
+#' 
+#' @param nodeSize Size of nodes (defaults to 8).
+#' @param edgeWidth Width of edges, an integer (defaults to 5).
+#' @param edgeColor Color of edges, a hex value (defaults to "0xeeeeee").
+#' @param fontSize Size of node text, an integer (defaults to 20).
+#' @param fontColor Color of node text, a hex value (defaults to "#FFFFFF").
+#' @export igraph_as_gradget_data
+igraph_as_gradget_data <- function(
+  graph,
+  nodeSize = 8, nodeColor = "0xcccccc",
+  edgeWidth = 5, edgeColor = "0xeeeeee",
+  fontSize = 16, fontColor = "#FFFFFF"
+){
+  vertex_data <- list(
+    x = V(G)$x, y = V(G)$y, z = V(G)$z,
+    count = V(G)$count, name = V(G)$name,
+    nodeSize = rep(nodeSize, times = length(V(G))), color = if (is.null(V(G)$color)) nodeColor  else V(G)$color,
+    fontSize = fontSize, fontColor = rep(fontColor, times = length(V(G)))
+  )
+  
+  edgelistId <- as_edgelist(G, names = FALSE)
+  edge_data <- list(
+    from = list(
+      name = get.edgelist(G)[,1],
+      x = V(G)[edgelistId[,1]]$x,
+      y = V(G)[edgelistId[,1]]$y,
+      z = V(G)[edgelistId[,1]]$z
+    ),
+    to = list(
+      name = get.edgelist(G)[,2],
+      x = V(G)[edgelistId[,2]]$x,
+      y = V(G)[edgelistId[,2]]$y,
+      z = V(G)[edgelistId[,2]]$z
+    ),
+    names = attr(E(G), "vnames"),
+    ll = unlist(lapply(
+      get.edge.attribute(G, "ll"), function(x) paste(round(x, 2), collapse = "|")
+    )),
+    count = unlist(lapply(get.edge.attribute(G, "ab_count"), mean)),
+    color = edgeColor,
+    lwd = edgeWidth
+  )
+  
+  list(
+    vertex_data = vertex_data,
+    edge_data = edge_data
+  )
+}
+
+
+
 #' Utility functions to manipulate igraph objects.
 #' 
 #' @param layout choose from list
 #' @param dim no of dimensions
 #' @param method method for coordinate calculation
-#' @export addCoordinates
+#' @export igraph_add_coordinates
 #' @rdname igraph_utils
 #' @importFrom igraph layout.fruchterman.reingold layout.kamada.kawai layout.spring layout.lgl layout.graphopt edge.betweenness.community is.directed
 #' @importFrom igraph layout_with_graphopt
-addCoordinates = function(
+igraph_add_coordinates = function(
   x,
   layout = c("kamada.kawai", "fruchterman.reingold", "kamada.kawai", "spring", "lgl", "graphopt"),
   dim = 3
@@ -36,8 +88,8 @@ addCoordinates = function(
 #' @param height new height
 #' @param margin margin
 #' @rdname igraph_utils
-#' @export normalizeCoordinates
-normalizeCoordinates = function(x, width, height, margin){
+#' @export igraph_normalize_coordinates
+igraph_normalize_coordinates = function(x, width, height, margin){
   coords <- cbind(V(x)$x, V(x)$y)
   normalize <- function(y) {
     y <- y - min(y)
@@ -74,10 +126,10 @@ rescale <- function(x, min, max){
 #' @param weights use weights for community detection
 #' @import RColorBrewer
 #' @rdname igraph_utils
-#' @export addCommunities
+#' @export igraph_add_communities
 #' @importFrom igraph cluster_fast_greedy fastgreedy.community edge.betweenness.community multilevel.community
 #' @importFrom igraph membership V<-
-addCommunities <- function(x, method = "fastgreedy", weights = FALSE){
+igraph_add_communities <- function(x, method = "fastgreedy", weights = FALSE){
   
   colors <- rep(c(brewer.pal(5, "Set1"), brewer.pal(8, "Dark2")), times = 10)
   

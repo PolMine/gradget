@@ -153,8 +153,8 @@ Ego <- setRefClass(
         G, remove.multiple = TRUE, remove.loops = TRUE,
         edge.attr.com = mean
       )
-      G <- addCommunities(G, method = "fastgreedy", weights = FALSE)
-      G <- addCoordinates(G, layout = "kamada.kawai", dim = 3)
+      G <- igraph_add_communities(G, method = "fastgreedy", weights = FALSE)
+      G <- igraph_add_coordinates(G, layout = "kamada.kawai", dim = 3)
       .self$igraph <- G
     },
     
