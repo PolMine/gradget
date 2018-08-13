@@ -10,6 +10,7 @@ HTMLWidgets.widget({
     var container = document.createElement( 'div' );
     el.appendChild( container );
     
+
     // this is a somewhat dirty hack because for browser output
     // a default height of 400px is passed; here, we fill the whole
     // space. May conflict with knitr output.
@@ -23,7 +24,7 @@ HTMLWidgets.widget({
         var camera, controls, scene, renderer;
         
         window.spacehits = 0;
-        window.annotated = ["foo"];
+        window.annotated = [];
 
         // variables needed for raycaster
         if (x.settings.raycaster == true){
@@ -34,6 +35,7 @@ HTMLWidgets.widget({
           window.popupY = 100;
         };
         
+
 
         function init(){
           
@@ -130,7 +132,6 @@ HTMLWidgets.widget({
           };
           
           if (x.settings.raycaster == true){
-            console.log("creating info div");
             var info = document.createElement( 'div' );
             container.appendChild( info );
             info.setAttribute("id", "info");
@@ -172,7 +173,7 @@ HTMLWidgets.widget({
           window.addEventListener( 'resize', onWindowResize, false );
           if (x.settings.raycaster == true){
             window.addEventListener( 'mousemove', firstMouseMove, false ); 
-            window.addEventListener( 'keydown', onKeyboardInput, true );
+            window.addEventListener( 'contextmenu', onKeyboardInput, false );
           };
           // render()
           
@@ -196,20 +197,39 @@ HTMLWidgets.widget({
           render()
         }
         
-        function onKeyboardInput( event ){
-          if (event.defaultPrevented) {
-            return; // Do nothing if the event was already processed
+        function getUserAnnotation(){
+           var anno = bootbox.prompt({
+             title: 'Annotate Edge/Node<hr style="padding: 0em;"/>\
+              <div id="selection" class="btn-group" data-toggle="buttons">\
+                <label class="radio-inline"><input type="radio" name="optradio" checked value="1">keep</label>\
+                <label class="radio-inline"><input type="radio" name="optradio" value="2">reconsider</label>\
+                <label class="radio-inline"><input type="radio" name="optradio" value="3">drop</label>\
+              </div>',
+             inputType: 'textarea',
+            callback: function (result) {
+              var selection = $('#selection input:radio:checked').val();
+              var retval = { "selection": selection, "annotation": result};
+              console.log(retval);
+              window.annotated.push(retval);
+              console.log(window.annotated);
+              return retval;
             }
-          if (event.keyCode === 32){
+           });
+        };
+
+        function onKeyboardInput( event ){
+          console.log("asdf");
+          // if (event.defaultPrevented) {
+          //  return; // Do nothing if the event was already processed
+          // }
+          // if (event.keyCode === 32){
             window.spacehits ++;
             console.log(window.spacehits);
-            var annotation_text = prompt("Tag this node/edge", "relevant");
-            window.annotated.push(info.innerHTML);
-            console.log(window.annotated);
+            getUserAnnotation()
             if (typeof Shiny != "undefined") {
               Shiny.onInputChange('graph_space_pressed', spacehits);
             }
-          }
+          // }
           event.preventDefault();
           
         }
@@ -252,8 +272,7 @@ HTMLWidgets.widget({
                     j = eval(intersects[i].object.id) - 7 - x.data.edge_data.from.x.length;
                     vertexInfo = x.data.vertex_data.name[j] + '<br/>count: ' + x.data.vertex_data.count[j];
                     info.innerHTML = vertexInfo;
-                  
-                  
+
         		      }
                   MATCH = intersects[i].object
                   break

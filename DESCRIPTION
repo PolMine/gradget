@@ -40,9 +40,10 @@ License: GPL-3
 Collate:
     'igraph.R'
     'Cooccurrences.R'
-    'SVG.R'
-    'Three.R'
-    'polmineR.graph_package.R'
+    'two.R'
+    'svg.R'
+    'three.R'
+    'polmineR.graph.R'
     'Ego.R'
     'granny.R'
 RoxygenNote: 6.0.1

@@ -6,3 +6,4 @@ dependencies:
       - three.min.js
       - plugins/TrackballControls.js
       - plugins/AnaglyphEffect.js
+      - plugins/bootbox.min.js
