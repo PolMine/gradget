@@ -13,33 +13,35 @@ igraph_as_gradget_data <- function(
   fontSize = 16, fontColor = "#FFFFFF"
 ){
   vertex_data <- list(
-    x = V(G)$x, y = V(G)$y, z = V(G)$z,
-    count = V(G)$count, name = V(G)$name,
-    nodeSize = rep(nodeSize, times = length(V(G))), color = if (is.null(V(G)$color)) nodeColor  else V(G)$color,
-    fontSize = fontSize, fontColor = rep(fontColor, times = length(V(G)))
+    x = V(graph)$x, y = V(graph)$y, z = V(graph)$z,
+    count = V(graph)$count, name = V(graph)$name,
+    nodeSize = rep(nodeSize, times = length(V(graph))), color = if (is.null(V(graph)$color)) nodeColor  else V(graph)$color,
+    fontSize = fontSize, fontColor = rep(fontColor, times = length(V(graph))),
+    kwic = unlist(V(graph)$kwic)
   )
   
-  edgelistId <- as_edgelist(G, names = FALSE)
+  edgelistId <- as_edgelist(graph, names = FALSE)
   edge_data <- list(
     from = list(
-      name = get.edgelist(G)[,1],
-      x = V(G)[edgelistId[,1]]$x,
-      y = V(G)[edgelistId[,1]]$y,
-      z = V(G)[edgelistId[,1]]$z
+      name = get.edgelist(graph)[,1],
+      x = V(graph)[edgelistId[,1]]$x,
+      y = V(graph)[edgelistId[,1]]$y,
+      z = V(graph)[edgelistId[,1]]$z
     ),
     to = list(
-      name = get.edgelist(G)[,2],
-      x = V(G)[edgelistId[,2]]$x,
-      y = V(G)[edgelistId[,2]]$y,
-      z = V(G)[edgelistId[,2]]$z
+      name = get.edgelist(graph)[,2],
+      x = V(graph)[edgelistId[,2]]$x,
+      y = V(graph)[edgelistId[,2]]$y,
+      z = V(graph)[edgelistId[,2]]$z
     ),
-    names = attr(E(G), "vnames"),
+    names = attr(E(graph), "vnames"),
     ll = unlist(lapply(
-      get.edge.attribute(G, "ll"), function(x) paste(round(x, 2), collapse = "|")
+      get.edge.attribute(graph, "ll"), function(x) paste(round(x, 2), collapse = "|")
     )),
-    count = unlist(lapply(get.edge.attribute(G, "ab_count"), mean)),
+    count = unlist(lapply(get.edge.attribute(graph, "ab_count"), mean)),
     color = edgeColor,
-    lwd = edgeWidth
+    lwd = edgeWidth,
+    kwic = unlist(E(graph)$kwic)
   )
   
   list(
@@ -366,4 +368,48 @@ igraph_as_svg <- function(
     paste(unlist(labels), collapse = "")
   )
   xml2::read_xml(svg_vec)
+}
+
+
+#' Add KWIC lineview to igraph object.
+#' 
+#' @param graph An igraph object.
+#' @param subcorpus A partition.
+#' @param verbose Logical.
+#' @param progress Logical.
+#' @examples
+#' am2008 <- partition(
+#'   "GERMAPARL",
+#'   speaker = "Angela Merkel", year = 2008, interjection = FALSE,
+#'   p_attribute = "word"
+#' )
+#' @export igraph_add_kwic
+igraph_add_kwic <- function(graph, subcorpus, verbose = TRUE, progress = TRUE){
+  
+  if (progress) message("... getting kwic for nodes")
+  .get_kwic_for_nodes <- function(n){
+    k <- kwic(subcorpus, query = n, verbose = FALSE)
+    vec <- as.character(k)
+    el <- paste(vec, collapse = "<br/>")
+    unlist(el)
+  }
+  V(graph)$kwic <- pblapply(V(graph)$name, .get_kwic_for_nodes)
+  
+  if (progress) message("... getting kwic for edges")
+  edge_matrix <- igraph::as_edgelist(graph)
+  
+  q1 <- sprintf('"%s" []{0,4} "%s"', edge_matrix[,1], edge_matrix[,2])
+  q2 <- sprintf('"%s" []{0,4} "%s"', edge_matrix[,2], edge_matrix[,1])
+  query_list <- split(data.frame(q1, q2, stringsAsFactors = FALSE), f = 1L:length(q1))
+  
+  .get_kwic_for_edges <- function(q){
+    k <- kwic(am2008, query = unlist(q), cqp = TRUE, verbose = FALSE)
+    vec <- as.character(k)
+    el <- paste(vec, collapse = "<br/>")
+    unlist(el)
+  }
+  
+  E(graph)$kwic <- pblapply(query_list, .get_kwic_for_edges)
+  
+  return(graph)
 }

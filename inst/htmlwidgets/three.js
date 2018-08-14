@@ -10,15 +10,27 @@ HTMLWidgets.widget({
     var container = document.createElement( 'div' );
     el.appendChild( container );
     
-
-    // this is a somewhat dirty hack because for browser output
-    // a default height of 400px is passed; here, we fill the whole
-    // space. May conflict with knitr output.
-    document.getElementById("three").style.height = "100%";
-    height = document.getElementById("three").offsetHeight;
-
+    // make width and height available globally, so that they can be retrieved/set in functions
+    window.width = width;
+    window.height = height;
+    window.objectMatched;
+    window.x;
+    
     return {
       renderValue: function(x) {
+        
+        window.x = x; // for debugging
+        
+        // this is a somewhat dirty hack because for browser output
+        // a default height of 400px is passed; here, we fill the whole
+        // space. May conflict with knitr output.
+        document.getElementById("three").style.height = "100%";
+        if (x.settings.knitr == false){
+          window.height = document.getElementById("three").offsetHeight;
+        } else {
+          window.width = width;
+        }
+
         
         // variables needed one way or the other
         var camera, controls, scene, renderer;
@@ -42,15 +54,6 @@ HTMLWidgets.widget({
           camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
           camera.position.z = 500;
 
-          controls = new THREE.TrackballControls( camera );
-          if (x.settings.raycaster == true){
-            controls.addEventListener('change', render, false);
-          } else {
-            controls.addEventListener('change', render);
-          };
-
-          
-
           scene = new THREE.Scene();
                 
           var pointLight = new THREE.PointLight( 0xffffff, 1, 1200 );
@@ -63,7 +66,7 @@ HTMLWidgets.widget({
           particleLight = new THREE.Mesh(
             new THREE.SphereGeometry( 4, 8, 8 ),
             new THREE.MeshBasicMaterial( { color: 0xffffff } ) 
-            );
+          );
           scene.add( particleLight );
           var pointLight = new THREE.PointLight( 0xaaaaaa, 1);
           particleLight.add( pointLight );
@@ -156,7 +159,7 @@ HTMLWidgets.widget({
 
           renderer = new THREE.WebGLRenderer();
           // renderer.setSize(window.innerWidth, window.innerHeight);
-          renderer.setSize(width, height);
+          renderer.setSize(window.width, window.height);
           renderer.setClearColor(eval(x.settings.bgColor), 1);
           // renderer.sortObjects = false; // from raycaster.html
           container.appendChild( renderer.domElement );
@@ -168,6 +171,18 @@ HTMLWidgets.widget({
             effect = new THREE.AnaglyphEffect( renderer ); // for anaglyph effect
             effect.setSize( width3D, height3D ); // for anaglyph effect
           };
+
+          if (x.settings.knitr == true){
+            document.getElementsByTagName("canvas")[0].style.borderRadius = "4px";
+          }
+          
+          controls = new THREE.TrackballControls( camera, renderer.domElement );
+          if (x.settings.raycaster == true){
+            controls.addEventListener('change', render, false);
+          } else {
+            controls.addEventListener('change', render);
+          };
+
 
           
           window.addEventListener( 'resize', onWindowResize, false );
@@ -200,6 +215,9 @@ HTMLWidgets.widget({
         function getUserAnnotation(){
            var anno = bootbox.prompt({
              title: 'Annotate Edge/Node<hr style="padding: 0em;"/>\
+              count: ' + x.data[window.objectMatched.type].count[window.objectMatched.index] + '<hr/>\
+              <div style="height: 200px; font-weight: normal;font-size: smaller;overflow-y: scroll;">' + x.data[window.objectMatched.type].kwic[window.objectMatched.index] + '</div>\
+              <hr/>\
               <div id="selection" class="btn-group" data-toggle="buttons">\
                 <label class="radio-inline"><input type="radio" name="optradio" checked value="1">keep</label>\
                 <label class="radio-inline"><input type="radio" name="optradio" value="2">reconsider</label>\
@@ -218,13 +236,11 @@ HTMLWidgets.widget({
         };
 
         function onKeyboardInput( event ){
-          console.log("asdf");
           // if (event.defaultPrevented) {
           //  return; // Do nothing if the event was already processed
           // }
           // if (event.keyCode === 32){
             window.spacehits ++;
-            console.log(window.spacehits);
             getUserAnnotation()
             if (typeof Shiny != "undefined") {
               Shiny.onInputChange('graph_space_pressed', spacehits);
@@ -262,6 +278,7 @@ HTMLWidgets.widget({
                     j = eval(intersects[i].object.id) - 7;
                     var edgeInfo = x.data.edge_data.names[j] + '<br/>ll: ' + x.data.edge_data.ll[i] + '<br/>count:  ' + x.data.edge_data.count[j];
                     info.innerHTML = edgeInfo;
+                    window.objectMatched = {type: "edge_data", index: j};
 
   
       			      } else if ( intersects[i].object instanceof THREE.Mesh ) {
@@ -272,6 +289,7 @@ HTMLWidgets.widget({
                     j = eval(intersects[i].object.id) - 7 - x.data.edge_data.from.x.length;
                     vertexInfo = x.data.vertex_data.name[j] + '<br/>count: ' + x.data.vertex_data.count[j];
                     info.innerHTML = vertexInfo;
+                    window.objectMatched = {type: "vertex_data", index: j};
 
         		      }
                   MATCH = intersects[i].object

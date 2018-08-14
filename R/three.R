@@ -2,7 +2,12 @@
 #' 
 #' Generate 3d graph with three.js
 #' 
+#' @param data 
 #' @param bgColor Background color, a hex value (defaults to "0x888888").
+#' @param knitr A logical value, whether htmlwidget is embedded in
+#'   knitr/Rmarkdown document. If TRUE, corners will be somewhat rounded, and a
+#'   sizing mechanism will ensure that the chunk option is processed
+#'   appropriately (best practice: fig.width = 9.5).
 #' @name three
 #' @rdname three
 #' @export three
@@ -46,15 +51,15 @@
 #' T
 #' }
 three <- function(
-  x, bgColor = "0x888888", raycaster = TRUE, anaglyph = FALSE,
+  data, bgColor = "0x888888", raycaster = TRUE, anaglyph = FALSE, knitr = FALSE,
   width = NULL, height = NULL
   ){
   
   if (is.null(V(G)$z)) warning("coordinates for threedimensional display are not available")
 
   x <- list(
-    data = x,
-    settings = list(bgColor = bgColor, raycaster = raycaster, anaglyph = anaglyph)
+    data = data,
+    settings = list(bgColor = bgColor, raycaster = raycaster, anaglyph = anaglyph, knitr = knitr)
   )
   
   # create the widget
