@@ -31,8 +31,18 @@ igraph_as_svg(graph, radius_min = 5, radius_tf = TRUE,
 Turn igraph object into SVG.
 }
 \examples{
-G <- merkel2008
-G <- igraph_add_coordinates(G, layout = "kamada.kawai", dim = 2)
-G <- igraph_normalize_coordinates(G, width = 800, height = 800, margin = 50)
-S <- igraph_as_svg(G)
+library(gradgets)
+library(magrittr)
+G <- merkel2008 \%>\%
+  igraph_add_coordinates(layout = "kamada.kawai", dim = 2) \%>\%
+  igraph_normalize_coordinates(width = 800, height = 800, margin = 50) \%>\%
+  igraph_as_svg()
+
+w <- svgPanZoom::svgPanZoom(S)
+
+w <- appendContent(
+  w,
+  includeScript(path = system.file(package = "gradgets", "js", "svg_js_extensions.js"))
+  )
+   
 }

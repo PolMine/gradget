@@ -8,14 +8,18 @@
 #'   knitr/Rmarkdown document. If TRUE, corners will be somewhat rounded, and a
 #'   sizing mechanism will ensure that the chunk option is processed
 #'   appropriately (best practice: fig.width = 9.5).
+#' @param elementId Passed into \code{htmlwidgets::createWidget}, required to be
+#'   "three" (default) if the widget shall be used directly, optionally NULL, if
+#'   the widget shall be included in a shiny app.
 #' @name three
 #' @rdname three
 #' @export three
 #' @importFrom igraph V E get.edge.attribute
 #' @examples
 #' \dontrun{
-#' library(polmineR.graph)
+#' library(gradgets)
 #' library(polmineR)
+#' library(magrittr)
 #' use("GermaParl")
 #' 
 #' merkel2008 <- partition(
@@ -24,35 +28,26 @@
 #'   p_attribute = "word"
 #' )
 #' 
-#' terms_to_drop <- c(
-#'   polmineR::punctuation,
-#'   unlist(noise(p_attributes(merkel2008, p_attribute = "word")))
-#' )
+#' terms_to_drop <- p_attributes(merkel2008, p_attribute = "word") %>%
+#'   noise(verbose = FALSE) %>%
+#'   unlist() %>%
+#'   unname() %>%
+#'   c(polmineR::punctuation)
 #' 
-#' Merkel <- Cooccurrences$new(
-#'   partition = merkel2008, p_attribute = "word", window = 5L,
-#'   drop = terms_to_drop
-#' )
-#' Merkel$count()
-#' Merkel$trim(action = "drop", by.id = TRUE)
-#' Merkel$maths()
-#' 
-#' Merkel$dt <- Merkel$dt[1:250]
-#' 
-#' G <- Merkel$as.igraph()
-#' G <- igraph_add_coordinates(G, layout = "kamada.kawai", dim = 3)
-#' G <- igraph_add_communities(G)
-#' G <- rescale(G, -250, 250)
-#' 
-#' T <- three(
-#'   igraph_as_gradget_data(G),
-#'   raycaster = TRUE
-#' )
-#' T
+#' Cooccurrences(merkel2008, "word", 5L, 5L, terms_to_drop) %>%
+#'   ll() %>%
+#'   decode() %>%
+#'   subset(rank_ll <= 250) %>%
+#'   as_igraph() %>%
+#'   igraph_add_coordinates(layout = "kamada.kawai", dim = 3) %>%
+#'   igraph_add_communities() %>%
+#'   rescale(-250, 250) %>%
+#'   igraph_as_gradget_data() %>%
+#'   three(raycaster = TRUE)
 #' }
 three <- function(
   data, bgColor = "0x888888", raycaster = TRUE, anaglyph = FALSE, knitr = FALSE,
-  width = NULL, height = NULL
+  width = NULL, height = NULL, elementId = "three"
   ){
   
   if (is.null(V(G)$z)) warning("coordinates for threedimensional display are not available")
@@ -66,7 +61,7 @@ three <- function(
   wdg <- htmlwidgets::createWidget(
     name = "three", x = x,
     # íf elementId is used we get warning: Ignoring explicitly provided widget ID "three"; Shiny doesn't use them
-    # elementId = "three", 
+    elementId = elementId, 
     width = width, height = height,
     sizingPolicy = sizingPolicy(
       padding = 0,
@@ -74,16 +69,15 @@ three <- function(
       browser.padding = 0, browser.fill = TRUE,
       knitr.defaultHeight = 800, knitr.defaultWidth = 600
     ),
-    package = "polmineR.graph"
+    package = "gradgets"
     )
   wdg
-
 }
 
 
 #' @export threeOutput
 threeOutput <- function(outputId, width = "100%", height = "400px") {
-  shinyWidgetOutput(outputId, "three", width, height, package = "polmineR.graph")
+  shinyWidgetOutput(outputId, "three", width, height, package = "gradgets")
 }
 
 #' @export renderThree

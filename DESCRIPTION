@@ -1,12 +1,12 @@
-Package: polmineR.graph
+Package: gradgets
 Type: Package
-Title: polmineR.graph
-Version: 0.2.5.9001
-Date: 2018-08-07
+Title: gradgets
+Version: 0.2.5.9002
+Date: 2018-11-12
 Author: Andreas Blaette
 Maintainer: Andreas Blaette <andreas.blaette@uni-due.de>
 Depends:
-    polmineR (>= 0.7.3),
+    polmineR (>= 0.7.10.9006),
     methods,
     RColorBrewer,
     shiny,
@@ -39,11 +39,8 @@ Description: Plugin for the polmineR-package to work with all cooccurrences in a
 License: GPL-3
 Collate:
     'igraph.R'
-    'Cooccurrences.R'
     'two.R'
-    'svg.R'
     'three.R'
-    'polmineR.graph.R'
-    'Ego.R'
+    'gradgets.R'
     'granny.R'
 RoxygenNote: 6.0.1

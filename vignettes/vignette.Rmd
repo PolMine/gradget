@@ -1,10 +1,10 @@
 ---
-title: "Introducing the 'polmineR.graph'-package"
+title: "Introducing the 'gradgets'-package"
 author: "Andreas Blätte (andreas.blaette@uni-due.de)"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Introduction to polmineR.graph}
+  %\VignetteIndexEntry{Introduction to gradgets}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -14,307 +14,61 @@ editor_options:
 
 ```{r, eval = TRUE, message = FALSE, echo = FALSE}
 library(polmineR)
-runcode <- if (require("GermaParl", quietly = T)) {use("GermaParl"); TRUE} else FALSE
+library(gradgets)
+library(magrittr)
+library(pbapply)
+library(igraph)
+```
+
+```{r}
+runcode <- if (require("GermaParl", quietly = TRUE)) TRUE else FALSE
+if (runcode) use ("GermaParl")
 ```
  
 
-## Analysing ego networks: Using cooccurrences-method
-
-
-Analysing cooccurrence networks does not necessarily require the \code{polmineR.graph} package.
-In a first example, I show how to use the \code{cooccurrences}-method and the \code{cooccurrencesBundle}-
-class to get the ego-network of a term. Here, I will analyse the cooccurrences of a query ("Islam") without
-using CQP syntax, but using the CQP syntax would be possible.
-
-```{r}
-query <- "Islam"
-use.cqp <- FALSE
-```
-
-I will use the corpus called "GERMAPARL" in the \code{GermaParl}-package. As this might be particularly interesting, I generate a partition for 2002 that will serve as the corpus of interest (coi), assuming that it may be particularly interesting to gain an insight into that associations Islam evoqued in the year after September 11.
-
-```{r}
-library(polmineR)
-use("GermaParl")
-coi <- partition("GERMAPARL", year = 2002, p_attribute = c("word", "pos"))
-coi <- Corpus$new("GERMAPARL", p_attribute = c("word", "pos"))
-```
-
-At this stage, let us define a few general parameters for the analysis. We are not interested in substantive
-associations rather than linguistic features, so the left and right context should be sufficiently large
-(10 words in this case). Working with cooccurrences usually requires filtering. For that, we use the
-part-of-speech annotation of the corpus, and we drop kinds of words without substantive meaning. Finally,
-if a term occurrs less than three times, and the statistical test remains below the 10.83-threshold,
-we do not include it in the further analysis. 
-
-```{r}
-options("polmineR.left" = 10)
-options("polmineR.right" = 10)
-pAttrs <- c("word", "pos")
-posToDrop <- c(
-  "ART", "APPR", "PRELS", "PDAT", "$(", "$.", "$,", "APPRAR",
-  "VAFIN", "APPRART", "KOUI", "KON", "PPOSAT", "KOUS"
-  )
-min.count <- 3
-min.ll <- 10.83
-max.coocs <- 10
-```
-
-With these options set, let us get the cooccurrences for the query first ...
-
-```{r}
-nodeCoocs <- cooccurrences(coi, query = query, cqp = use.cqp, p_attribute = pAttrs, verbose = FALSE)
-```
-
-Then we do the filtering, using the parameters defined before. For that purpose, we can use the 
-subset-method that is applied to the \code{data.table} in the slot "stat" if the cooccurrences object.
-
-```{r}
-nodeCoocsMin <- subset(nodeCoocs, !pos %in% posToDrop)
-nodeCoocsMin <- subset(nodeCoocsMin, count_window >= min.count)
-nodeCoocsMin <- subset(nodeCoocsMin, ll >= min.ll)
-if (nrow(nodeCoocsMin) > max.coocs) nodeCoocsMin <- nodeCoocsMin[1:max.coocs]
-```
-
-In the column "word" of the \code{data.table} in the cooccurrences-object, we find the statistically
-significant cooccurrences of the query ("Islam"). Using pblapply to get a list, we iterate through these words, using these words as queries. In that process, the same filtering as before is applied. Note: pblapply is 
-essentially the same as lapply, but shows a nice progress bar.
-
-```{r}
-library(pbapply)
-nodeCoocsMin <- subset(nodeCoocsMin, pos != "CARD")
-coocs <- pbapply::pblapply(
-  nodeCoocsMin[["word"]],
-  function(token){
-    C <- cooccurrences(coi, query = token, cqp = FALSE, p_attribute = pAttrs, verbose = FALSE)
-    C <- subset(C, !pos %in% posToDrop)
-    C <- subset(C, count_window >= min.count)
-    C <- subset(C, ll >= min.ll)
-    if (nrow(C) > max.coocs) C <- C[1:max.coocs]
-    C
-  }
-)
-```
-
-To procceed to an object that can be processed by some graph visualisation engine, the trick 
-is now to bundle the cooccurrence analysis for the node and its cooccurrences in a cooccurrencesBundle
-object.
-
-```{r}
-coocBundle <- new("cooccurrences_bundle", objects = coocs)
-coocBundle <- coocBundle + nodeCoocsMin
-```
-
-That can be turned into a data.frame easily. 
-
-```{r}
-df <- as.data.frame(coocBundle)
-df[["b"]] <- gsub("^(.*?)//.*?$", "\\1", df[["b"]])
-```
-
-We now have everything we need for using igraph. We turn our data.frame into an igraph object,
-and add communities and coordinates using two auxiliary functions included in the polmineR.graph
-package. 
-
-```{r}
-library(igraph)
-library(polmineR.graph)
-G <- igraph::graph_from_data_frame(df)
-G <- simplify(
-  G, remove.multiple = TRUE, remove.loops = TRUE
-#  , edge.attr.com = list(weight = "mean", name = "concat")
-  )
-G <- igraph_add_communities(G, method = "fastgreedy", weights = FALSE)
-G <- igraph_add_coordinates(G, layout = "kamada.kawai", dim = 3)
-```
-
-This is an object that can be plotted. Of course, a lot of further beauty can be added using the 
-various parameters of the igraph library. Explaining this goes beyond this tutorial.
-
-```{r}
-plot(G)
-```
-
-The polmineR.graph package includes a class that can produce a SVG graphic ...
-
-```{r, eval = FALSE}
-library(polmineR.graph)
-S <- SVG$new(G)
-S$width <- 500
-S$height <- 500
-S$fontSize <- 12
-S$make()
-S$as_htmlwidget()
-```
-
-You can export the graph to Gephi ...
-
-```{r, eval = FALSE}
-library(rgexf)
-gephi <- rgexf::igraph.to.gexf(G)
-print(gephi, file = "~/Lab/tmp/gephi.gexf")
-```
-
-You can use an advanced visualisation tool such as D3 ...
-
-```{r, eval = FALSE}
-library(networkD3)
-links <- as.data.frame(
-  cbind(
-    as_edgelist(G, names = FALSE),
-    rep(1, length(E(G)))
-  )
-)
-# links <- as.data.frame(
-#   cbind(
-#     as_edgelist(G, names = FALSE),
-#     sapply(E(G)$ll, function(x) x[1])
-#   )
-# )
-links[,1] <- links[,1] - 1L
-links[,2] <- links[,2] - 1L 
-colnames(links) <- c("source", "target", "value")
-nodes <- data.frame(
-  name = V(G)$name,
-  group = V(G)$community,
-  size = 3
-)
-forceNetwork(
-  Links = links, Nodes = nodes, Source = "source",
-  Target = "target", Value = "value", NodeID = "name",
-  Group = "group",
-  opacity = 0.75, fontSize = 20, zoom = TRUE
-  )
-```
-
-
-## Analysing ego networks: Using Cooccurrences-class
-
-
-
-# Loading required libraries
-
-```{r}
-library(polmineR)
-library(data.table)
-library(polmineR.graph)
-library(igraph)
-library(RColorBrewer)
-library(three)
-```
-
-
-# Configuration
-
-```{r}
-termOfInterest <- "Ungleichheit"
-corpus <- "GERMAPARL"
-sAttr <- "year" # for GERMAPARL, would be "year" for many other corpora
-pAttr <- "lemma"
-use.regex <- TRUE
-years <- 2008:2010
-window.size <- 10L
-
-threshold <- 3.84
-min.count <- 3
-graph.order = 1L
-
-
-svg.width <- 800
-svg.height <- 650
-svg.margin <- 100
-svg.fontSize <- 13
-svg.edgeColor <- "lightgrey"
-
-setwd(tempdir()) # output html files will be stored here
-```
-
-
-# helper function
-
-```{r}
-makeSVG <- function(sAttrValue, label){
-  
-  print(year)
-  
-  # create partition
-  defList <- as.list(setNames(sAttrValue, sAttr))
-  P <- partition(corpus, def = defList, p_attribute = pAttr, regex = use.regex)
-
-  coocTest <- cooccurrences(P, query = termOfInterest, p_attribute = pAttr)
-  if (length(which(coocTest[["count_window"]] >= 5)) <= 5){
-    msg <- "less than 5 statistically significant cooccurrences"
-    warning(msg, year)
-    return(NULL)
-  }
-  
-  # create Cooccurrences object
-  termsToDrop <- c(polmineR::punctuation, unlist(noise(p_attributes(P, p_attribute = pAttr))))
-  Cooc <- Cooccurrences$new(partition = P, p_attribute = pAttr, window = window.size, drop = termsToDrop)
-  Cooc$count()
-  Cooc$trim(action = "drop", by.id = TRUE)
-  Cooc$maths(method = "ll")
-  
-  # minimize by applying statistical threshold, reduction to token neighborhood
-  CoocMin <- copy(Cooc)
-  CoocMin$dt <- copy(Cooc$dt)
-  CoocMin$dt <- CoocMin$dt[ll > threshold]
-  CoocMin$dt <- CoocMin$dt[ab_count >= min.count]
-  G <- CoocMin$as.igraph(as.undirected = TRUE)
-  if (! termOfInterest %in% V(G)$name){
-    warning("no statistignificantly reliable result for ", year)
-    return(NULL)
-  }
-  Gmin <- make_ego_graph(G, order = graph.order, nodes = termOfInterest)[[1]]
-  Gmin <- simplify(Gmin, remove.multiple = TRUE, remove.loops = TRUE)
-  Gmin <- addCommunities(Gmin)
-  Gmin <- igraph_add_coordinates(Gmin, layout = "kamada.kawai", dim = 2)
-  
-  # turn into SVG
-  S <- SVG$new(Gmin)
-  S$width = svg.width
-  S$height = svg.height
-  S$margin = svg.margin
-  S$fontSize = svg.fontSize
-  S$edgeColor = svg.edgeColor
-  S$make()
-  outfile <- S$store(filename = file.path(getwd(), paste(year, ".html", sep = "")))
-  print(outfile)
-
-}
-```
-
-
 # Generate output
 
+
+```{r, eval = FALSE}
+G <- merkel2008 %>%
+  igraph_add_coordinates(layout = "kamada.kawai", dim = 3) %>%
+  igraph_add_communities() %>%
+  rescale(-250, 250)
+```
+
 ```{r}
-for (year in years) makeSVG(sAttrValue = year, label = year)
+igraph_as_gradget_data(G) %>% three()
 ```
 
 
-```{r}
-G <- merkel2008
-G <- igraph_add_coordinates(G, layout = "kamada.kawai", dim = 3)
-G <- igraph_add_communities(G)
-G <- rescale(G, -250, 250)
-
-am2008 <- partition(
+```{r, eval = FALSE}
+am <- partition(
   "GERMAPARL",
   speaker = "Angela Merkel", year = 2008, interjection = FALSE,
   p_attribute = "word"
 )
-V(G)$kwic <- pblapply(V(G)$name, function(n) as.character(kwic(am2008, query = n, verbose = F)))
-V(G)$kwic <- sapply(V(G)$kwic, function(x) paste(x, collapse = "<br/>"))
-V(G)$kwic <- unlist(V(G)$kwic)
+```
 
+```{r, eval = FALSE}
+V(G)$kwic <- pblapply(V(G)$name, function(n) kwic(am, query = n, verbose = F)) %>%
+  lapply(as.character) %>%
+  lapply(function(x) paste(x, collapse = "<br/>")) %>%
+  unlist()
+```
+
+```{r, eval = FALSE}
 edge_matrix <- igraph::as_edgelist(merkel2008)
 q1 <- sprintf('"%s" []{0,4} "%s"', edge_matrix[,1], edge_matrix[,2])
 q2 <- sprintf('"%s" []{0,4} "%s"', edge_matrix[,2], edge_matrix[,1])
-E(G)$kwic <- pblapply(
-  split(data.frame(q1, q2, stringsAsFactors = F), f = 1L:length(q1)),
-  function(q) as.character(kwic(am2008, query = unlist(q), cqp = T, verbose = F))
-)
-E(G)$kwic <- sapply(E(G)$kwic, function(x) paste(x, collapse = "<br/>"))
 
+E(G)$kwic <- data.frame(q1, q2, stringsAsFactors = FALSE), f = 1L:length(q1) %>%
+  split(f = 1L:length(q1)) %>%
+  pblapply(function(q) kwic(am2008, query = unlist(q), cqp = T, verbose = FALSE)) %>%
+  lapply(as.character) %>%
+  lapply(function(x) paste(x, collapse = "<br/>")) %>%
+  unlist()
+```
+
+```{r, eval = FALSE}
 granny(G)
 ```

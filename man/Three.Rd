@@ -4,19 +4,31 @@
 \alias{three}
 \title{Generate and manage 3d graph.}
 \usage{
-three(x, bgColor = "0x888888", raycaster = TRUE, anaglyph = FALSE,
-  width = NULL, height = NULL)
+three(data, bgColor = "0x888888", raycaster = TRUE, anaglyph = FALSE,
+  knitr = FALSE, width = NULL, height = NULL, elementId = "three")
 }
 \arguments{
+\item{data}{}
+
 \item{bgColor}{Background color, a hex value (defaults to "0x888888").}
+
+\item{knitr}{A logical value, whether htmlwidget is embedded in
+knitr/Rmarkdown document. If TRUE, corners will be somewhat rounded, and a
+sizing mechanism will ensure that the chunk option is processed
+appropriately (best practice: fig.width = 9.5).}
+
+\item{elementId}{Passed into \code{htmlwidgets::createWidget}, required to be
+"three" (default) if the widget shall be used directly, optionally NULL, if
+the widget shall be included in a shiny app.}
 }
 \description{
 Generate 3d graph with three.js
 }
 \examples{
 \dontrun{
-library(polmineR.graph)
+library(gradgets)
 library(polmineR)
+library(magrittr)
 use("GermaParl")
 
 merkel2008 <- partition(
@@ -25,30 +37,21 @@ merkel2008 <- partition(
   p_attribute = "word"
 )
 
-terms_to_drop <- c(
-  polmineR::punctuation,
-  unlist(noise(p_attributes(merkel2008, p_attribute = "word")))
-)
+terms_to_drop <- p_attributes(merkel2008, p_attribute = "word") \%>\%
+  noise(verbose = FALSE) \%>\%
+  unlist() \%>\%
+  unname() \%>\%
+  c(polmineR::punctuation)
 
-Merkel <- Cooccurrences$new(
-  partition = merkel2008, p_attribute = "word", window = 5L,
-  drop = terms_to_drop
-)
-Merkel$count()
-Merkel$trim(action = "drop", by.id = TRUE)
-Merkel$maths()
-
-Merkel$dt <- Merkel$dt[1:250]
-
-G <- Merkel$as.igraph()
-G <- igraph_add_coordinates(G, layout = "kamada.kawai", dim = 3)
-G <- igraph_add_communities(G)
-G <- rescale(G, -250, 250)
-
-T <- three(
-  igraph_as_gradget_data(G),
-  raycaster = TRUE
-)
-T
+Cooccurrences(merkel2008, "word", 5L, 5L, terms_to_drop) \%>\%
+  ll() \%>\%
+  decode() \%>\%
+  subset(rank_ll <= 250) \%>\%
+  as_igraph() \%>\%
+  igraph_add_coordinates(layout = "kamada.kawai", dim = 3) \%>\%
+  igraph_add_communities() \%>\%
+  rescale(-250, 250) \%>\%
+  igraph_as_gradget_data() \%>\%
+  three(raycaster = TRUE)
 }
 }

@@ -9,13 +9,3 @@ two(svg)
 \description{
 The resulting svg graph will have clickable nodes and edges.
 }
-\examples{
-\dontrun{
-
-Y <- SVG$new(G)
-Y$make()
-Y$as_htmlwidget()
-
-Y$browse()
-}
-}

@@ -278,72 +278,75 @@ as.networkD3 <- function(x){
 #' @import svgPanZoom svgPanZoom
 #' @importFrom igraph V
 #' @examples 
-#' library(polmineR.graph)
-#' G <- merkel2008
-#' G <- igraph_add_coordinates(G, layout = "kamada.kawai", dim = 2)
-#' G <- igraph_normalize_coordinates(G, width = 800, height = 800, margin = 50)
-#' S <- igraph_as_svg(G)
+#' library(gradgets)
+#' library(magrittr)
+#' library(igraph)
 #' 
+#' G <- merkel2008 %>%
+#'   igraph_add_coordinates(layout = "kamada.kawai", dim = 2) %>%
+#'   igraph_normalize_coordinates(width = 800, height = 800, margin = 50)
+
+#' S <- igraph_as_svg(G)
 #' w <- svgPanZoom::svgPanZoom(S)
 #' 
 #' w <- appendContent(
 #'   w,
-#'   includeScript(path = system.file(package = "polmineR.graph", "js", "svg_js_extensions.js"))
+#'   includeScript(path = system.file(package = "gradgets", "js", "svg_js_extensions.js"))
 #'   )
 #'    
 #' @export igraph_as_svg
 igraph_as_svg <- function(
-  graph,
+  x,
   radius_min = 5, radius_tf = TRUE,
   edgeColor = "black",
   fontSize = 8, textOffset = 3,
   width = 800, height = 800
 ){
   
-  if (is.null(V(graph)$color)) V(graph)$color <- rep("blue", times = length(V(G)))
+  if (is.null(V(x)$color)) V(x)$color <- rep("blue", times = length(V(G)))
   if (radius_tf){
-    if (!is.null(V(graph)$count)){
-      rad <- radius_min + sqrt(sqrt(V(graph)$count / 3.14159))  
+    if (!is.null(V(x)$count)){
+      rad <- radius_min + sqrt(sqrt(V(x)$count / 3.14159))  
     } else {
-      rad <- rep(radius_min, times = length(V(graph)))
+      rad <- rep(radius_min, times = length(V(x)))
     }
     
   } else {
-    rad <- rep(radius_min, times = length(V(graph)))
+    rad <- rep(radius_min, times = length(V(x)))
   }
   
-  if (is.null(V(graph)$community)) V(graph)$community <- rep(0, length(V(graph)))
+  if (is.null(V(x)$community)) V(x)$community <- rep(0, length(V(x)))
   
   nodes <- sprintf(
     '<circle r="%s" stroke="%s" fill="%s" cx="%s" cy="%s" nodeId="%s" token="%s" count="%s" freq="%s" community="%s" onmouseover="nodeMouseOver(event)"/>',
     as.character(rad),
     rep("black", times = length(V(G))),
-    V(graph)$color,
-    V(graph)$x,
-    V(graph)$y,
+    V(x)$color,
+    V(x)$x,
+    V(x)$y,
     1L:length(V(G)),
-    V(graph)$name,
-    "", #as.character(V(self$igraph)[i]$tfAbs),
-    "", #as.character(V(self$igraph)[i]$tfRel),
-    V(graph)$community
+    V(x)$name,
+    "", #as.character(V(self$ix)[i]$tfAbs),
+    "", #as.character(V(self$ix)[i]$tfRel),
+    V(x)$community
   )
 
-  edgelistId <- get.edgelist(graph, names = FALSE)
-  edgelistString <- get.edgelist(graph, names = TRUE)
+  edgelistId <- get.edgelist(x, names = FALSE)
+  edgelistString <- get.edgelist(x, names = TRUE)
   
-  if (!is.null(E(graph)$ll)){
-    llValues <- round(sapply(E(graph)$ll, mean), 2)
+  if (!is.null(E(x)$ll)){
+    llValues <- round(sapply(E(x)$ll, mean), 2)
   } else {
-    llValues <- rep(0, times = length(E(igraph)))
+    llValues <- rep(0, times = length(E(x)))
   }
   
   edges <- sprintf(
     '<line style="%s" x1="%s" y1="%s" x2="%s" y2="%s" from="%s" to="%s" llXY="%s" llYX="%s" onmouseover="edgeMouseOver(event, this)"/>',
     sprintf("stroke:%s; stroke-width:1px; fill:none;", edgeColor),
-    V(graph)[edgelistId[,1]]$x, #x1
-    V(graph)[edgelistId[,1]]$y, #y1
-    V(graph)[edgelistId[,2]]$x, #x2
-    V(graph)[edgelistId[,2]]$y, #y2
+    V(x)[edgelistId[,1]]$x, #x1
+    V(x)[edgelistId[,1]]$y, #y1
+    V(x)[edgelistId[,2]]$x, #x2
+    V(x)[edgelistId[,2]]$y, #y2
     edgelistId[,1], #y2
     edgelistId[,2], #
     llValues,
@@ -354,10 +357,10 @@ igraph_as_svg <- function(
     '<text fill="%s" style = "%s" x="%s" y="%s" nodeId="%s" onmouseover="nodeMouseOver(event)">%s</text>',
     "red",
     paste("font-size:", as.character(fontSize), "px;font-family:sans-serif", sep = ""),
-    V(graph)$x + textOffset,
-    V(graph)$y - textOffset,
-    1L:length(V(graph)),
-    V(graph)$name
+    V(x)$x + textOffset,
+    V(x)$y - textOffset,
+    1L:length(V(x)),
+    V(x)$name
   )
   
   svg_vec <- sprintf(

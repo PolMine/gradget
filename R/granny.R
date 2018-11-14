@@ -9,10 +9,10 @@
 #' @importFrom shinyjs useShinyjs extendShinyjs js
 #' @export granny
 #' @examples
-#' G <- merkel2008
-#' G <- igraph_add_coordinates(G, layout = "kamada.kawai", dim = 3)
-#' G <- igraph_add_communities(G)
-#' G <- rescale(G, -250, 250)
+#' G <- merkel2008 %>%
+#'   igraph_add_coordinates(layout = "kamada.kawai", dim = 3) %>%
+#'   igraph_add_communities(G) %>% 
+#'   rescale(-250, 250)
 #' 
 #' am2008 <- partition(
 #'   "GERMAPARL",
@@ -68,7 +68,7 @@ granny <- function(graph) {
   
   server <- function(input, output, session) {
     
-    output$three <- renderThree( three(igraph_as_gradget_data(graph), raycaster = TRUE) )
+    output$three <- renderThree( three(igraph_as_gradget_data(graph), raycaster = TRUE, elementId = NULL) )
     
     output$graph_data <- DT::renderDataTable(
       DT::datatable(igraph::as_edgelist(graph), rownames = FALSE)
