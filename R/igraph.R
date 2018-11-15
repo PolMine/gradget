@@ -1,10 +1,12 @@
 #' Convert igraph object to gradget data.
 #' 
+#' @param graph The \code{igraph} object to transform.
 #' @param nodeSize Size of nodes (defaults to 8).
 #' @param edgeWidth Width of edges, an integer (defaults to 5).
 #' @param edgeColor Color of edges, a hex value (defaults to "0xeeeeee").
 #' @param fontSize Size of node text, an integer (defaults to 20).
 #' @param fontColor Color of node text, a hex value (defaults to "#FFFFFF").
+#' @param nodeColor Color of node. 
 #' @export igraph_as_gradget_data
 igraph_as_gradget_data <- function(
   graph,
@@ -57,6 +59,7 @@ igraph_as_gradget_data <- function(
 #' @param layout choose from list
 #' @param dim no of dimensions
 #' @param method method for coordinate calculation
+#' @param ... Further arguments.
 #' @export igraph_add_coordinates
 #' @rdname igraph_utils
 #' @importFrom igraph layout.fruchterman.reingold layout.kamada.kawai layout.spring layout.lgl layout.graphopt edge.betweenness.community is.directed
@@ -130,7 +133,7 @@ rescale <- function(x, min, max){
 #' @rdname igraph_utils
 #' @export igraph_add_communities
 #' @importFrom igraph cluster_fast_greedy fastgreedy.community edge.betweenness.community multilevel.community
-#' @importFrom igraph membership V<-
+#' @importFrom igraph membership V<- as.undirected
 igraph_add_communities <- function(x, method = "fastgreedy", weights = FALSE){
   
   colors <- rep(c(brewer.pal(5, "Set1"), brewer.pal(8, "Dark2")), times = 10)
@@ -166,8 +169,9 @@ igraph_add_communities <- function(x, method = "fastgreedy", weights = FALSE){
 #' @param no number of community
 #' @rdname igraph_utils
 #' @export selectCommunity
+#' @importFrom igraph delete_vertices
 selectCommunity <- function(x, no){
-  delete.vertices(x, V(x)[which(! V(x)$community %in% no)])
+  delete_vertices(x, V(x)[which(! V(x)$community %in% no)])
 }
 
 #' @importFrom DiagrammeR create_node_df create_edge_df create_graph
@@ -265,15 +269,14 @@ as.networkD3 <- function(x){
 
 #' Turn igraph object into SVG.
 #' 
-#' @param edgeAttributes attributes of edges to maintain
-#' @param verticeAttributes attributes of vertices to maintain
+#' @param x An \code{igraph} object.
 #' @param width the width of the svg
 #' @param height the height of the svg
-#' @param margin margins of the svg
 #' @param fontSize font size of the vertex labels
 #' @param textOffset where to put text
-#' @param edgeAttributes attributes of edges for tooltips
-#' @param verticeAttributes attributes of attributes for tooltips
+#' @param radius_min ...
+#' @param radius_tf ...
+#' @param edgeColor ...
 #' @importFrom xml2 read_xml
 #' @import svgPanZoom svgPanZoom
 #' @importFrom igraph V
@@ -281,6 +284,7 @@ as.networkD3 <- function(x){
 #' library(gradgets)
 #' library(magrittr)
 #' library(igraph)
+#' library(shiny)
 #' 
 #' G <- merkel2008 %>%
 #'   igraph_add_coordinates(layout = "kamada.kawai", dim = 2) %>%
@@ -291,7 +295,7 @@ as.networkD3 <- function(x){
 #' 
 #' w <- appendContent(
 #'   w,
-#'   includeScript(path = system.file(package = "gradgets", "js", "svg_js_extensions.js"))
+#'   shiny::includeScript(path = system.file(package = "gradgets", "js", "svg_js_extensions.js"))
 #'   )
 #'    
 #' @export igraph_as_svg
@@ -303,7 +307,7 @@ igraph_as_svg <- function(
   width = 800, height = 800
 ){
   
-  if (is.null(V(x)$color)) V(x)$color <- rep("blue", times = length(V(G)))
+  if (is.null(V(x)$color)) V(x)$color <- rep("blue", times = length(V(x)))
   if (radius_tf){
     if (!is.null(V(x)$count)){
       rad <- radius_min + sqrt(sqrt(V(x)$count / 3.14159))  
@@ -320,11 +324,11 @@ igraph_as_svg <- function(
   nodes <- sprintf(
     '<circle r="%s" stroke="%s" fill="%s" cx="%s" cy="%s" nodeId="%s" token="%s" count="%s" freq="%s" community="%s" onmouseover="nodeMouseOver(event)"/>',
     as.character(rad),
-    rep("black", times = length(V(G))),
+    rep("black", times = length(V(x))),
     V(x)$color,
     V(x)$x,
     V(x)$y,
-    1L:length(V(G)),
+    1L:length(V(x)),
     V(x)$name,
     "", #as.character(V(self$ix)[i]$tfAbs),
     "", #as.character(V(self$ix)[i]$tfRel),
@@ -370,7 +374,19 @@ igraph_as_svg <- function(
     paste(unlist(nodes), collapse = ""),
     paste(unlist(labels), collapse = "")
   )
-  xml2::read_xml(svg_vec)
+  retval <- xml2::read_xml(svg_vec)
+  class(retval) <- c("svg", class(retval))
+  retval
+}
+
+#' @export plot.svg
+#' @importFrom htmltools tags
+#' @importFrom htmlwidgets appendContent JS
+#' @rdname igraph_utils
+plot.svg <- function(x, ...){
+  w <- svgPanZoom::svgPanZoom(x)
+  js <- JS(readLines(system.file(package = "gradgets", "js", "svg_js_extensions.js")))
+  appendContent(w, tags$script(js))
 }
 
 
@@ -380,6 +396,7 @@ igraph_as_svg <- function(
 #' @param subcorpus A partition.
 #' @param verbose Logical.
 #' @param progress Logical.
+#' @importFrom igraph E<-
 #' @examples
 #' am2008 <- partition(
 #'   "GERMAPARL",
@@ -406,7 +423,7 @@ igraph_add_kwic <- function(graph, subcorpus, verbose = TRUE, progress = TRUE){
   query_list <- split(data.frame(q1, q2, stringsAsFactors = FALSE), f = 1L:length(q1))
   
   .get_kwic_for_edges <- function(q){
-    k <- kwic(am2008, query = unlist(q), cqp = TRUE, verbose = FALSE)
+    k <- kwic(subcorpus, query = unlist(q), cqp = TRUE, verbose = FALSE)
     vec <- as.character(k)
     el <- paste(vec, collapse = "<br/>")
     unlist(el)

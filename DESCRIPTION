@@ -7,40 +7,33 @@ Author: Andreas Blaette
 Maintainer: Andreas Blaette <andreas.blaette@uni-due.de>
 Depends:
     polmineR (>= 0.7.10.9006),
-    methods,
     RColorBrewer,
-    shiny,
     htmlwidgets
 Imports:
     igraph,
-    XML,
     xml2,
-    parallel,
     htmltools,
-    pander,
-    rjson,
-    slam,
-    data.table,
     DiagrammeR,
     networkD3,
     pbapply,
     plotly,
-    RcppCWB,
     svgPanZoom,
     shinyjs,
-    miniUI
+    miniUI,
+    shiny
 Suggests:
     knitr,
     DT,
-    colourpicker
+    colourpicker,
+    magrittr,
+    GermaParl
 VignetteBuilder: knitr
 LazyData: yes
 Description: Plugin for the polmineR-package to work with all cooccurrences in a corpus.
 License: GPL-3
+Encoding: UTF-8
 Collate:
     'igraph.R'
-    'two.R'
     'three.R'
-    'gradgets.R'
-    'granny.R'
+    'gradget.R'
 RoxygenNote: 6.0.1

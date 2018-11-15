@@ -2,7 +2,7 @@
 #' 
 #' Generate 3d graph with three.js
 #' 
-#' @param data 
+#' @param data Input data.
 #' @param bgColor Background color, a hex value (defaults to "0x888888").
 #' @param knitr A logical value, whether htmlwidget is embedded in
 #'   knitr/Rmarkdown document. If TRUE, corners will be somewhat rounded, and a
@@ -11,12 +11,16 @@
 #' @param elementId Passed into \code{htmlwidgets::createWidget}, required to be
 #'   "three" (default) if the widget shall be used directly, optionally NULL, if
 #'   the widget shall be included in a shiny app.
+#' @param raycaster ...
+#' @param anaglyph ... 
+#' @param width ...
+#' @param height ...
 #' @name three
 #' @rdname three
 #' @export three
 #' @importFrom igraph V E get.edge.attribute
+#' @importFrom htmlwidgets sizingPolicy
 #' @examples
-#' \dontrun{
 #' library(gradgets)
 #' library(polmineR)
 #' library(magrittr)
@@ -34,27 +38,26 @@
 #'   unname() %>%
 #'   c(polmineR::punctuation)
 #' 
-#' Cooccurrences(merkel2008, "word", 5L, 5L, terms_to_drop) %>%
+#' G <- Cooccurrences(merkel2008, "word", 5L, 5L, terms_to_drop) %>%
 #'   ll() %>%
 #'   decode() %>%
 #'   subset(rank_ll <= 250) %>%
 #'   as_igraph() %>%
 #'   igraph_add_coordinates(layout = "kamada.kawai", dim = 3) %>%
 #'   igraph_add_communities() %>%
-#'   rescale(-250, 250) %>%
-#'   igraph_as_gradget_data() %>%
-#'   three(raycaster = TRUE)
-#' }
+#'   rescale(-250, 250)
+#' 
+#' igraph_as_gradget_data(G) %>% three(raycaster = TRUE)
 three <- function(
   data, bgColor = "0x888888", raycaster = TRUE, anaglyph = FALSE, knitr = FALSE,
   width = NULL, height = NULL, elementId = "three"
   ){
   
-  if (is.null(V(G)$z)) warning("coordinates for threedimensional display are not available")
+  # if (is.null(V(G)$z)) warning("coordinates for threedimensional display are not available")
 
   x <- list(
     data = data,
-    settings = list(bgColor = bgColor, raycaster = raycaster, anaglyph = anaglyph, knitr = knitr)
+    settings = list(bgColor = bgColor, raycaster = raycaster, anaglyph = anaglyph, knitr = knitr, width = width, height = height)
   )
   
   # create the widget
@@ -76,11 +79,21 @@ three <- function(
 
 
 #' @export threeOutput
+#' @importFrom htmlwidgets shinyWidgetOutput
+#' @rdname three
 threeOutput <- function(outputId, width = "100%", height = "400px") {
   shinyWidgetOutput(outputId, "three", width, height, package = "gradgets")
 }
 
+
+#' @param outputId output variable to read from
+#' @param expr An expression that generates an HTML widget
+#' @param env The environment in which to evaluate expr.
+#' @param quoted Is \code{expr} a quoted expression (with quote())? This is useful if
+#'   you want to save an expression in a variable.
 #' @export renderThree
+#' @importFrom htmlwidgets shinyRenderWidget
+#' @rdname three
 renderThree <- function(expr, env = parent.frame(), quoted = FALSE) {
   if (!quoted) { expr <- substitute(expr) } # force quoted
   shinyRenderWidget(expr, threeOutput, env, quoted = TRUE)

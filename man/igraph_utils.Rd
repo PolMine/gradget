@@ -9,6 +9,7 @@
 \alias{as.dgr_graph}
 \alias{as.plotly}
 \alias{as.networkD3}
+\alias{plot.svg}
 \title{Utility functions to manipulate igraph objects.}
 \usage{
 igraph_add_coordinates(x, layout = c("kamada.kawai", "fruchterman.reingold",
@@ -27,6 +28,8 @@ as.dgr_graph(x)
 as.plotly(x)
 
 as.networkD3(x)
+
+\method{plot}{svg}(x, ...)
 }
 \arguments{
 \item{x}{igraph object}
@@ -50,6 +53,8 @@ as.networkD3(x)
 \item{weights}{use weights for community detection}
 
 \item{no}{number of community}
+
+\item{...}{Further arguments.}
 }
 \description{
 Utility functions to manipulate igraph objects.

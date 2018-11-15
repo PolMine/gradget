@@ -1,3 +1,15 @@
+setOldClass("igraph")
+setOldClass("json")
+
+
+#' Cooccurrence (i)graph of Merkel 2008.
+#' 
+#' @format An igraph object
+"merkel2008"
+
+
+
+
 #' Graph Annotation with Shiny.
 #' 
 #' A shiny gadget for graph annotation with shiny, or granny in short. 
@@ -7,11 +19,18 @@
 #'   edge and node data).
 #' @importFrom miniUI miniPage miniTitleBar miniTabstripPanel miniTabPanel gadgetTitleBar miniContentPanel
 #' @importFrom shinyjs useShinyjs extendShinyjs js
-#' @export granny
+#' @importFrom shiny runGadget observeEvent stopApp browserViewer icon
+#' @importFrom pbapply pblapply
+#' @importFrom polmineR kwic
 #' @examples
+#' library(magrittr)
+#' library(polmineR)
+#' library(pbapply)
+#' use("GermaParl")
+#' 
 #' G <- merkel2008 %>%
 #'   igraph_add_coordinates(layout = "kamada.kawai", dim = 3) %>%
-#'   igraph_add_communities(G) %>% 
+#'   igraph_add_communities() %>% 
 #'   rescale(-250, 250)
 #' 
 #' am2008 <- partition(
@@ -19,21 +38,10 @@
 #'   speaker = "Angela Merkel", year = 2008, interjection = FALSE,
 #'   p_attribute = "word"
 #' )
-#' V(G)$kwic <- pblapply(V(G)$name, function(n) as.character(kwic(am2008, query = n, verbose = F)))
-#' V(G)$kwic <- sapply(V(G)$kwic, function(x) paste(x, collapse = "<br/>"))
-#' V(G)$kwic <- unlist(V(G)$kwic)
-#' 
-#' edge_matrix <- igraph::as_edgelist(merkel2008)
-#' q1 <- sprintf('"%s" []{0,4} "%s"', edge_matrix[,1], edge_matrix[,2])
-#' q2 <- sprintf('"%s" []{0,4} "%s"', edge_matrix[,2], edge_matrix[,1])
-#' E(G)$kwic <- pblapply(
-#'   split(data.frame(q1, q2, stringsAsFactors = F), f = 1L:length(q1)),
-#'   function(q) as.character(kwic(am2008, query = unlist(q), cqp = T, verbose = F))
-#' )
-#' E(G)$kwic <- sapply(E(G)$kwic, function(x) paste(x, collapse = "<br/>"))
-#' 
-#' granny(G)
-granny <- function(graph) { 
+#' # G <- igraph_add_kwic(G, subcorpus = am2008)
+#' if (interactive()) gradget(G)
+#' @export gradget
+gradget <- function(graph) { 
   
   
   jsCode <- '

@@ -24,12 +24,19 @@ library(igraph)
 runcode <- if (require("GermaParl", quietly = TRUE)) TRUE else FALSE
 if (runcode) use ("GermaParl")
 ```
- 
+
+
+## 2D
+
+```{r}
+G <- merkel2008
+igraph_as_svg(merkel2008) %>% plot()
+```
 
 # Generate output
 
 
-```{r, eval = FALSE}
+```{r, eval = TRUE}
 G <- merkel2008 %>%
   igraph_add_coordinates(layout = "kamada.kawai", dim = 3) %>%
   igraph_add_communities() %>%
@@ -37,7 +44,7 @@ G <- merkel2008 %>%
 ```
 
 ```{r}
-igraph_as_gradget_data(G) %>% three()
+igraph_as_gradget_data(G) %>% three(knitr = TRUE, width = 700, height = 500)
 ```
 
 

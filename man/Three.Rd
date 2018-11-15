@@ -2,24 +2,47 @@
 % Please edit documentation in R/three.R
 \name{three}
 \alias{three}
+\alias{threeOutput}
+\alias{renderThree}
 \title{Generate and manage 3d graph.}
 \usage{
 three(data, bgColor = "0x888888", raycaster = TRUE, anaglyph = FALSE,
   knitr = FALSE, width = NULL, height = NULL, elementId = "three")
+
+threeOutput(outputId, width = "100\%", height = "400px")
+
+renderThree(expr, env = parent.frame(), quoted = FALSE)
 }
 \arguments{
-\item{data}{}
+\item{data}{Input data.}
 
 \item{bgColor}{Background color, a hex value (defaults to "0x888888").}
+
+\item{raycaster}{...}
+
+\item{anaglyph}{...}
 
 \item{knitr}{A logical value, whether htmlwidget is embedded in
 knitr/Rmarkdown document. If TRUE, corners will be somewhat rounded, and a
 sizing mechanism will ensure that the chunk option is processed
 appropriately (best practice: fig.width = 9.5).}
 
+\item{width}{...}
+
+\item{height}{...}
+
 \item{elementId}{Passed into \code{htmlwidgets::createWidget}, required to be
 "three" (default) if the widget shall be used directly, optionally NULL, if
 the widget shall be included in a shiny app.}
+
+\item{outputId}{output variable to read from}
+
+\item{expr}{An expression that generates an HTML widget}
+
+\item{env}{The environment in which to evaluate expr.}
+
+\item{quoted}{Is \code{expr} a quoted expression (with quote())? This is useful if
+you want to save an expression in a variable.}
 }
 \description{
 Generate 3d graph with three.js

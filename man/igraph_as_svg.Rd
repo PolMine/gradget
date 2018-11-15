@@ -4,11 +4,18 @@
 \alias{igraph_as_svg}
 \title{Turn igraph object into SVG.}
 \usage{
-igraph_as_svg(graph, radius_min = 5, radius_tf = TRUE,
-  edgeColor = "black", fontSize = 8, textOffset = 3, width = 800,
-  height = 800)
+igraph_as_svg(x, radius_min = 5, radius_tf = TRUE, edgeColor = "black",
+  fontSize = 8, textOffset = 3, width = 800, height = 800)
 }
 \arguments{
+\item{x}{An \code{igraph} object.}
+
+\item{radius_min}{...}
+
+\item{radius_tf}{...}
+
+\item{edgeColor}{...}
+
 \item{fontSize}{font size of the vertex labels}
 
 \item{textOffset}{where to put text}
@@ -16,16 +23,6 @@ igraph_as_svg(graph, radius_min = 5, radius_tf = TRUE,
 \item{width}{the width of the svg}
 
 \item{height}{the height of the svg}
-
-\item{edgeAttributes}{attributes of edges to maintain}
-
-\item{verticeAttributes}{attributes of vertices to maintain}
-
-\item{margin}{margins of the svg}
-
-\item{edgeAttributes}{attributes of edges for tooltips}
-
-\item{verticeAttributes}{attributes of attributes for tooltips}
 }
 \description{
 Turn igraph object into SVG.
@@ -33,16 +30,18 @@ Turn igraph object into SVG.
 \examples{
 library(gradgets)
 library(magrittr)
+library(igraph)
+library(shiny)
+
 G <- merkel2008 \%>\%
   igraph_add_coordinates(layout = "kamada.kawai", dim = 2) \%>\%
-  igraph_normalize_coordinates(width = 800, height = 800, margin = 50) \%>\%
-  igraph_as_svg()
-
+  igraph_normalize_coordinates(width = 800, height = 800, margin = 50)
+S <- igraph_as_svg(G)
 w <- svgPanZoom::svgPanZoom(S)
 
 w <- appendContent(
   w,
-  includeScript(path = system.file(package = "gradgets", "js", "svg_js_extensions.js"))
+  shiny::includeScript(path = system.file(package = "gradgets", "js", "svg_js_extensions.js"))
   )
    
 }

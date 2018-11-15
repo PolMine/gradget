@@ -28,7 +28,17 @@ HTMLWidgets.widget({
         if (x.settings.knitr == false){
           window.height = document.getElementById("three").offsetHeight;
         } else {
-          window.width = width;
+          if ( x.settings.width != null){
+            console.log("a");
+            console.log(x.settings.width);
+            window.width = x.settings.width;
+          }
+          
+          if ( x.settings.height != null){
+            console.log("c");
+            console.log(x.settings.height);
+            window.height = x.settings.height;
+          }
         }
 
         
@@ -197,7 +207,7 @@ HTMLWidgets.widget({
         function onWindowResize() {
           camera.aspect = window.innerWidth / window.innerHeight;
           camera.updateProjectionMatrix();
-          renderer.setSize( window.innerWidth, window.innerHeight );
+          renderer.setSize( window.width, window.height );
         }
         
         function firstMouseMove ( event ) {

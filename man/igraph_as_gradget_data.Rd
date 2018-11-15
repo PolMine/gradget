@@ -9,7 +9,11 @@ igraph_as_gradget_data(graph, nodeSize = 8, nodeColor = "0xcccccc",
   fontColor = "#FFFFFF")
 }
 \arguments{
+\item{graph}{The \code{igraph} object to transform.}
+
 \item{nodeSize}{Size of nodes (defaults to 8).}
+
+\item{nodeColor}{Color of node.}
 
 \item{edgeWidth}{Width of edges, an integer (defaults to 5).}
 

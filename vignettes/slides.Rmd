@@ -1,0 +1,49 @@
+---
+title: "Die Nachbarschaft zählt"
+subtitle: 'Die Analyse von Kookkurrenzen mit polmineR'
+author: "Andreas Blaette"
+date: "Stand: 12. November 2018"
+output:
+  revealjs::revealjs_presentation:
+  css: foo.css
+  reveal_options:
+    controls: false
+    progress: true
+---
+
+
+```{r, eval = TRUE, message = FALSE, echo = FALSE}
+library(polmineR)
+library(gradgets)
+library(magrittr)
+library(pbapply)
+library(igraph)
+```
+
+```{r, echo = FALSE, message = FALSE}
+runcode <- if (require("GermaParl", quietly = TRUE)) TRUE else FALSE
+if (runcode) use ("GermaParl")
+```
+
+
+## 2D
+
+```{r, echo = FALSE}
+G <- merkel2008
+igraph_as_svg(merkel2008) %>% plot()
+```
+
+
+## {.gradget}
+
+```{r, eval = TRUE, echo = FALSE}
+merkel2008 %>%
+  igraph_add_coordinates(layout = "kamada.kawai", dim = 3) %>%
+  igraph_add_communities() %>%
+  rescale(-250, 250) %>%
+  igraph_as_gradget_data() %>%
+  # three(knitr = TRUE)
+  three(knitr = TRUE, width = 1000, height = 600, anaglyph = TRUE)
+```
+
+
