@@ -45,7 +45,6 @@ setOldClass("json")
 #' @export gradget
 gradget <- function(graph) { 
   
-  
   jsCode <- '
     shinyjs.get_annotations = function(){Shiny.onInputChange("annotations", window.annotated);}
   '
