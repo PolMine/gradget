@@ -21,7 +21,7 @@
 #' @importFrom igraph V E get.edge.attribute
 #' @importFrom htmlwidgets sizingPolicy
 #' @examples
-#' library(gradgets)
+#' library(gradget)
 #' library(polmineR)
 #' library(magrittr)
 #' use("GermaParl")
@@ -72,7 +72,7 @@ three <- function(
       browser.padding = 0, browser.fill = TRUE,
       knitr.defaultHeight = 800, knitr.defaultWidth = 600
     ),
-    package = "gradgets"
+    package = "gradget"
     )
   wdg
 }
@@ -82,7 +82,7 @@ three <- function(
 #' @importFrom htmlwidgets shinyWidgetOutput
 #' @rdname three
 threeOutput <- function(outputId, width = "100%", height = "400px") {
-  shinyWidgetOutput(outputId, "three", width, height, package = "gradgets")
+  shinyWidgetOutput(outputId, "three", width, height, package = "gradget")
 }
 
 

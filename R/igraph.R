@@ -281,7 +281,7 @@ as.networkD3 <- function(x){
 #' @import svgPanZoom svgPanZoom
 #' @importFrom igraph V
 #' @examples 
-#' library(gradgets)
+#' library(gradget)
 #' library(magrittr)
 #' library(igraph)
 #' library(shiny)
@@ -295,7 +295,7 @@ as.networkD3 <- function(x){
 #' 
 #' w <- appendContent(
 #'   w,
-#'   shiny::includeScript(path = system.file(package = "gradgets", "js", "svg_js_extensions.js"))
+#'   shiny::includeScript(path = system.file(package = "gradget", "js", "svg_js_extensions.js"))
 #'   )
 #'    
 #' @export igraph_as_svg
@@ -385,7 +385,7 @@ igraph_as_svg <- function(
 #' @rdname igraph_utils
 plot.svg <- function(x, ...){
   w <- svgPanZoom::svgPanZoom(x)
-  js <- JS(readLines(system.file(package = "gradgets", "js", "svg_js_extensions.js")))
+  js <- JS(readLines(system.file(package = "gradget", "js", "svg_js_extensions.js")))
   appendContent(w, tags$script(js))
 }
 

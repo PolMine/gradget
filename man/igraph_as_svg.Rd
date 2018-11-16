@@ -28,7 +28,7 @@ igraph_as_svg(x, radius_min = 5, radius_tf = TRUE, edgeColor = "black",
 Turn igraph object into SVG.
 }
 \examples{
-library(gradgets)
+library(gradget)
 library(magrittr)
 library(igraph)
 library(shiny)
@@ -41,7 +41,7 @@ w <- svgPanZoom::svgPanZoom(S)
 
 w <- appendContent(
   w,
-  shiny::includeScript(path = system.file(package = "gradgets", "js", "svg_js_extensions.js"))
+  shiny::includeScript(path = system.file(package = "gradget", "js", "svg_js_extensions.js"))
   )
    
 }

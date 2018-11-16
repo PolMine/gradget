@@ -1,10 +1,10 @@
 ---
-title: "Introducing the 'gradgets'-package"
+title: "Introducing the 'gradget'-package"
 author: "Andreas Blätte (andreas.blaette@uni-due.de)"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Introduction to gradgets}
+  %\VignetteIndexEntry{Introduction to gradget}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -14,7 +14,7 @@ editor_options:
 
 ```{r, eval = TRUE, message = FALSE, echo = FALSE}
 library(polmineR)
-library(gradgets)
+library(gradget)
 library(magrittr)
 library(pbapply)
 library(igraph)

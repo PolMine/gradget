@@ -48,8 +48,7 @@ you want to save an expression in a variable.}
 Generate 3d graph with three.js
 }
 \examples{
-\dontrun{
-library(gradgets)
+library(gradget)
 library(polmineR)
 library(magrittr)
 use("GermaParl")
@@ -66,15 +65,14 @@ terms_to_drop <- p_attributes(merkel2008, p_attribute = "word") \%>\%
   unname() \%>\%
   c(polmineR::punctuation)
 
-Cooccurrences(merkel2008, "word", 5L, 5L, terms_to_drop) \%>\%
+G <- Cooccurrences(merkel2008, "word", 5L, 5L, terms_to_drop) \%>\%
   ll() \%>\%
   decode() \%>\%
   subset(rank_ll <= 250) \%>\%
   as_igraph() \%>\%
   igraph_add_coordinates(layout = "kamada.kawai", dim = 3) \%>\%
   igraph_add_communities() \%>\%
-  rescale(-250, 250) \%>\%
-  igraph_as_gradget_data() \%>\%
-  three(raycaster = TRUE)
-}
+  rescale(-250, 250)
+
+igraph_as_gradget_data(G) \%>\% three(raycaster = TRUE)
 }

@@ -4,6 +4,8 @@ setOldClass("json")
 
 #' Cooccurrence (i)graph of Merkel 2008.
 #' 
+#' @docType data
+#' @encoding UTF-8 
 #' @format An igraph object
 "merkel2008"
 
