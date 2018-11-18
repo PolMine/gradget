@@ -18,6 +18,7 @@ A shiny gadget for graph annotation with shiny, or granny in short.
 library(magrittr)
 library(polmineR)
 library(pbapply)
+library(igraph)
 use("GermaParl")
 
 G <- merkel2008 \%>\%
@@ -30,6 +31,6 @@ am2008 <- partition(
   speaker = "Angela Merkel", year = 2008, interjection = FALSE,
   p_attribute = "word"
 )
-# G <- igraph_add_kwic(G, subcorpus = am2008)
-if (interactive()) gradget(G)
+G <- igraph_add_kwic(G, subcorpus = am2008)
+if (interactive()) G <- gradget(G)
 }

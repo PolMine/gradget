@@ -20,14 +20,14 @@ setOldClass("json")
 #'   the gradget htmlwidget (x, y, and z coordinates, if applicable; additional
 #'   edge and node data).
 #' @importFrom miniUI miniPage miniTitleBar miniTabstripPanel miniTabPanel gadgetTitleBar miniContentPanel
-#' @importFrom shinyjs useShinyjs extendShinyjs js
-#' @importFrom shiny runGadget observeEvent stopApp browserViewer icon
+#' @importFrom shiny runGadget observeEvent stopApp browserViewer icon reactiveValues
 #' @importFrom pbapply pblapply
 #' @importFrom polmineR kwic
 #' @examples
 #' library(magrittr)
 #' library(polmineR)
 #' library(pbapply)
+#' library(igraph)
 #' use("GermaParl")
 #' 
 #' G <- merkel2008 %>%
@@ -40,19 +40,15 @@ setOldClass("json")
 #'   speaker = "Angela Merkel", year = 2008, interjection = FALSE,
 #'   p_attribute = "word"
 #' )
-#' # G <- igraph_add_kwic(G, subcorpus = am2008)
-#' if (interactive()) gradget(G)
+#' G <- igraph_add_kwic(G, subcorpus = am2008)
+#' if (interactive()) G <- gradget(G)
 #' @export gradget
 gradget <- function(graph) { 
   
-  jsCode <- '
-    shinyjs.get_annotations = function(){Shiny.onInputChange("annotations", window.annotated);}
-  '
+  values <- reactiveValues()
+  values[["graph"]] <- graph
   
   ui <- miniPage(
-    
-    useShinyjs(),
-    extendShinyjs(text = jsCode, functions = "get_annotations"),
     
     gadgetTitleBar(title = "Annotation Gadget"),
     miniTabstripPanel(
@@ -84,21 +80,25 @@ gradget <- function(graph) {
     )
     
     observeEvent(
-      input$graph_space_pressed,
+      input$annotation_added,
       {
-        print("space pressed")
-        js$get_annotations()
+        action_types <- c("1" = "keep", "2" = "reconsider", "3" = "drop")
+        if (input$annotation$type == "vertex"){
+          V(values$graph)[[input$annotation$name]]$action <- action_types[[input$annotation$selection]]
+          V(values$graph)[[input$annotation$name]]$annotation <- input$annotation$annotation
+        } else if (input$annotation$type == "edge"){
+          edge_no <- which(attr(E(graph), "vnames") == input$annotation$name)
+          E(values$graph)[[edge_no]]$action <- action_types[[input$annotation$selection]]
+          E(values$graph)[[edge_no]]$annotation <- input$annotation$annotation
+        }
         
-        df <- data.frame(x = input$annotations)
-        print(df)
-        output$annotations_table <- DT::renderDataTable(
-          DT::datatable(df, selection = "single", rownames = FALSE)
-        )
+        # output$annotations_table <- DT::renderDataTable(DT::datatable(df, selection = "single", rownames = FALSE))
       }
     )
+    
     observeEvent(
       input$done,
-      stopApp(input$annotations)
+      stopApp(values$graph)
     )
     
   }

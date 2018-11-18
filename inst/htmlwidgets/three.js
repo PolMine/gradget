@@ -45,8 +45,9 @@ HTMLWidgets.widget({
         // variables needed one way or the other
         var camera, controls, scene, renderer;
         
-        window.spacehits = 0;
-        window.annotated = [];
+        window.noAnnotations = 0;
+        window.annotationObject = {};
+        window.annotation = {};
 
         // variables needed for raycaster
         if (x.settings.raycaster == true){
@@ -198,7 +199,7 @@ HTMLWidgets.widget({
           window.addEventListener( 'resize', onWindowResize, false );
           if (x.settings.raycaster == true){
             window.addEventListener( 'mousemove', firstMouseMove, false ); 
-            window.addEventListener( 'contextmenu', onKeyboardInput, false );
+            window.addEventListener( 'contextmenu', addAnnotation, false );
           };
           // render()
           
@@ -236,25 +237,34 @@ HTMLWidgets.widget({
              inputType: 'textarea',
             callback: function (result) {
               var selection = $('#selection input:radio:checked').val();
-              var retval = { "selection": selection, "annotation": result};
-              console.log(retval);
-              window.annotated.push(retval);
-              console.log(window.annotated);
-              return retval;
+              window.annotation = {
+                "selection": selection,
+                "annotation": result,
+                "type": window.annotationObject.type,
+                "name": window.annotationObject.name
+              };
+              console.log(window.annotation);
+              if (typeof Shiny != "undefined") {
+                Shiny.onInputChange("annotation", window.annotation);
+                Shiny.onInputChange('annotation_added', window.noAnnotations);
+              }
+              return window.annotation;
             }
            });
         };
 
-        function onKeyboardInput( event ){
+        function addAnnotation( event ){
           // if (event.defaultPrevented) {
           //  return; // Do nothing if the event was already processed
           // }
           // if (event.keyCode === 32){
-            window.spacehits ++;
+            window.noAnnotations ++;
+            if (window.objectMatched.type == "vertex_data"){
+              window.annotationObject = {"type":"vertex", "name": x.data.vertex_data.name[window.objectMatched.index]};
+            } else if (window.objectMatched.type == "edge_data"){
+              window.annotationObject = {"type":"edge", "name": x.data.edge_data.names[window.objectMatched.index]};
+            };
             getUserAnnotation()
-            if (typeof Shiny != "undefined") {
-              Shiny.onInputChange('graph_space_pressed', spacehits);
-            }
           // }
           event.preventDefault();
           

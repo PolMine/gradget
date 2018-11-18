@@ -4,12 +4,17 @@
 \alias{igraph_add_kwic}
 \title{Add KWIC lineview to igraph object.}
 \usage{
-igraph_add_kwic(graph, subcorpus, verbose = TRUE, progress = TRUE)
+igraph_add_kwic(graph, subcorpus, left = 5L, right = 5L, verbose = TRUE,
+  progress = TRUE)
 }
 \arguments{
 \item{graph}{An igraph object.}
 
 \item{subcorpus}{A partition.}
+
+\item{left}{Left context.}
+
+\item{right}{Right context.}
 
 \item{verbose}{Logical.}
 
@@ -24,4 +29,5 @@ am2008 <- partition(
   speaker = "Angela Merkel", year = 2008, interjection = FALSE,
   p_attribute = "word"
 )
+G <- igraph_add_kwic(merkel2008, subcorpus = am2008)
 }

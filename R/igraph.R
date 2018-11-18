@@ -2,11 +2,11 @@
 #' 
 #' @param graph The \code{igraph} object to transform.
 #' @param nodeSize Size of nodes (defaults to 8).
+#' @param nodeColor Color of node. 
 #' @param edgeWidth Width of edges, an integer (defaults to 5).
 #' @param edgeColor Color of edges, a hex value (defaults to "0xeeeeee").
 #' @param fontSize Size of node text, an integer (defaults to 20).
 #' @param fontColor Color of node text, a hex value (defaults to "#FFFFFF").
-#' @param nodeColor Color of node. 
 #' @export igraph_as_gradget_data
 igraph_as_gradget_data <- function(
   graph,
@@ -14,8 +14,18 @@ igraph_as_gradget_data <- function(
   edgeWidth = 5, edgeColor = "0xeeeeee",
   fontSize = 16, fontColor = "#FFFFFF"
 ){
+  # add annotatin and action, if the graph has not yet been annotated
+  if (is.null(V(graph)$action)) V(graph)$action <- rep(NA, times = length(V(graph)))
+  if (is.null(V(graph)$annotation)) V(graph)$annotation <- rep(NA, times = length(V(graph)))
+  if (is.null(E(graph)$action)) E(graph)$action <- rep(NA, times = length(E(graph)))
+  if (is.null(E(graph)$annotation)) E(graph)$annotation <- rep(NA, times = length(E(graph)))
+
   vertex_data <- list(
-    x = V(graph)$x, y = V(graph)$y, z = V(graph)$z,
+    x = V(graph)$x,
+    y = V(graph)$y,
+    z = V(graph)$z,
+    action = V(graph)$action,
+    annotation = V(graph)$annotation,
     count = V(graph)$count, name = V(graph)$name,
     nodeSize = rep(nodeSize, times = length(V(graph))), color = if (is.null(V(graph)$color)) nodeColor  else V(graph)$color,
     fontSize = fontSize, fontColor = rep(fontColor, times = length(V(graph))),
@@ -36,6 +46,8 @@ igraph_as_gradget_data <- function(
       y = V(graph)[edgelistId[,2]]$y,
       z = V(graph)[edgelistId[,2]]$z
     ),
+    action = E(graph)$action,
+    annotation = E(graph)$annotation,
     names = attr(E(graph), "vnames"),
     ll = unlist(lapply(
       get.edge.attribute(graph, "ll"), function(x) paste(round(x, 2), collapse = "|")
@@ -394,42 +406,78 @@ plot.svg <- function(x, ...){
 #' 
 #' @param graph An igraph object.
 #' @param subcorpus A partition.
+#' @param left Left context.
+#' @param right Right context.
 #' @param verbose Logical.
 #' @param progress Logical.
 #' @importFrom igraph E<-
+#' @importFrom stats setNames
+#' @importFrom polmineR context registry_get_encoding as.corpusEnc highlight
 #' @examples
 #' am2008 <- partition(
 #'   "GERMAPARL",
 #'   speaker = "Angela Merkel", year = 2008, interjection = FALSE,
 #'   p_attribute = "word"
 #' )
+#' G <- igraph_add_kwic(merkel2008, subcorpus = am2008)
 #' @export igraph_add_kwic
-igraph_add_kwic <- function(graph, subcorpus, verbose = TRUE, progress = TRUE){
+igraph_add_kwic <- function(graph, subcorpus, left = 5L, right = 5L, verbose = TRUE, progress = TRUE){
   
+  message("... getting context of nodes")
+  context_list <- pblapply(
+    setNames(V(graph)$name, V(graph)$name),
+    function(q) context(subcorpus, query = q, left = left * 2L, right = right * 2L, verbose = FALSE)
+  )
+
   if (progress) message("... getting kwic for nodes")
-  .get_kwic_for_nodes <- function(n){
-    k <- kwic(subcorpus, query = n, verbose = FALSE)
-    vec <- as.character(k)
+  .get_kwic_for_nodes <- function(x){
+    x@cpos <- subset(x@cpos, x@cpos[["position"]] >= -left)
+    x@cpos <- subset(x@cpos, x@cpos[["position"]] <= right)
+    vec <- as.character(kwic(x), fmt = '<span style="background-color:yellow">%s</span>')
     el <- paste(vec, collapse = "<br/>")
     unlist(el)
   }
-  V(graph)$kwic <- pblapply(V(graph)$name, .get_kwic_for_nodes)
+  V(graph)$kwic <- pblapply(context_list, .get_kwic_for_nodes)
   
-  if (progress) message("... getting kwic for edges")
-  edge_matrix <- igraph::as_edgelist(graph)
+  if (progress) message("... creating edge data")
+  enc <- registry_get_encoding("GERMAPARL")
+  edge_data <- pblapply(
+    strsplit(attr(E(graph), "vnames"), "\\|"),
+    function(edge_names){
+      context_min <- polmineR:::trim(
+        context_list[[edge_names[1]]],
+        positivelist = as.corpusEnc(edge_names[2], corpusEnc = enc),
+        verbose = FALSE
+      )
+      if (is.null(context_min)){
+        return("")
+      } else {
+        K <- kwic(context_min, verbose = FALSE)
+        K <- highlight(K, yellow = edge_names[2])
+        y <- as.character(K, fmt = '<b style="background-color:yellow">%s</b>')
+        y <- paste(y, collapse = "</br>")
+        return(y)
+      }
+    }
+  )
+  E(graph)$kwic <- unlist(edge_data)
   
-  q1 <- sprintf('"%s" []{0,4} "%s"', edge_matrix[,1], edge_matrix[,2])
-  q2 <- sprintf('"%s" []{0,4} "%s"', edge_matrix[,2], edge_matrix[,1])
-  query_list <- split(data.frame(q1, q2, stringsAsFactors = FALSE), f = 1L:length(q1))
-  
-  .get_kwic_for_edges <- function(q){
-    k <- kwic(subcorpus, query = unlist(q), cqp = TRUE, verbose = FALSE)
-    vec <- as.character(k)
-    el <- paste(vec, collapse = "<br/>")
-    unlist(el)
-  }
-  
-  E(graph)$kwic <- pblapply(query_list, .get_kwic_for_edges)
-  
-  return(graph)
+  graph
 }
+
+
+#' Perform action on igraph object 
+#' 
+#' @param x An \code{igraph} object that has been annotated.
+#' @export igraph_perform_action
+igraph_perform_action <- function(x){
+  i <- which(V(x)$action == "drop")
+  vertices_to_drop <- V(x)[i]
+  y <- delete_vertices(x, vertices_to_drop)
+  
+  i <- which(E(y)$action == "drop")
+  edges_to_drop <- V(y)[i]
+  delete_vertices(y, edges_to_drop)
+  y
+}
+
