@@ -244,6 +244,8 @@ HTMLWidgets.widget({
                 "name": window.annotationObject.name
               };
               console.log(window.annotation);
+              console.log(x.data[window.annotationObject.type]);
+              x.data[window.annotationObject.type + "_data"].annotation[window.annotationObject.index] = result;
               if (typeof Shiny != "undefined") {
                 Shiny.onInputChange("annotation", window.annotation);
                 Shiny.onInputChange('annotation_added', window.noAnnotations);
@@ -260,9 +262,17 @@ HTMLWidgets.widget({
           // if (event.keyCode === 32){
             window.noAnnotations ++;
             if (window.objectMatched.type == "vertex_data"){
-              window.annotationObject = {"type":"vertex", "name": x.data.vertex_data.name[window.objectMatched.index]};
+              window.annotationObject = {
+                "type":"vertex",
+                "name": x.data.vertex_data.name[window.objectMatched.index],
+                "index": window.objectMatched.index
+              };
             } else if (window.objectMatched.type == "edge_data"){
-              window.annotationObject = {"type":"edge", "name": x.data.edge_data.names[window.objectMatched.index]};
+              window.annotationObject = {
+                "type":"edge",
+                "name": x.data.edge_data.names[window.objectMatched.index],
+                "index": window.objectMatched.index
+              };
             };
             getUserAnnotation()
           // }
@@ -297,6 +307,10 @@ HTMLWidgets.widget({
                     info.style.left = window.popupX + 'px';
                     j = eval(intersects[i].object.id) - 7;
                     var edgeInfo = x.data.edge_data.names[j] + '<br/>ll: ' + x.data.edge_data.ll[i] + '<br/>count:  ' + x.data.edge_data.count[j];
+                    if (x.data.edge_data.annotation[j] != null){
+                      edgeInfo = edgeInfo + '<br/>annotation: ' + x.data.edge_data.annotation[j];
+                    };
+
                     info.innerHTML = edgeInfo;
                     window.objectMatched = {type: "edge_data", index: j};
 
@@ -308,6 +322,9 @@ HTMLWidgets.widget({
 
                     j = eval(intersects[i].object.id) - 7 - x.data.edge_data.from.x.length;
                     vertexInfo = x.data.vertex_data.name[j] + '<br/>count: ' + x.data.vertex_data.count[j];
+                    if (x.data.vertex_data.annotation[j] != null){
+                      vertexInfo = vertexInfo + '<br/>annotation: ' + x.data.vertex_data.annotation[j];
+                    };
                     info.innerHTML = vertexInfo;
                     window.objectMatched = {type: "vertex_data", index: j};
 
