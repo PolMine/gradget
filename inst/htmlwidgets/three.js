@@ -230,10 +230,11 @@ HTMLWidgets.widget({
               <div style="height: 200px; font-weight: normal;font-size: smaller;overflow-y: scroll;">' + x.data[window.objectMatched.type].kwic[window.objectMatched.index] + '</div>\
               <hr/>\
               <div id="selection" class="btn-group" data-toggle="buttons">\
-                <label class="radio-inline"><input type="radio" name="optradio" checked value="1">keep</label>\
-                <label class="radio-inline"><input type="radio" name="optradio" value="2">reconsider</label>\
-                <label class="radio-inline"><input type="radio" name="optradio" value="3">drop</label>\
+                <label class="radio-inline"><input type="radio" name="optradio" ' + window.annotationObject.checked[0] + 'value="1">keep</label>\
+                <label class="radio-inline"><input type="radio" name="optradio" ' + window.annotationObject.checked[1] + 'value="2">reconsider</label>\
+                <label class="radio-inline"><input type="radio" name="optradio" ' + window.annotationObject.checked[2] + 'value="3">drop</label>\
               </div>',
+             value: x.data[window.annotationObject.type + "_data"].annotation[window.annotationObject.index],
              inputType: 'textarea',
             callback: function (result) {
               var selection = $('#selection input:radio:checked').val();
@@ -243,9 +244,16 @@ HTMLWidgets.widget({
                 "type": window.annotationObject.type,
                 "name": window.annotationObject.name
               };
-              console.log(window.annotation);
-              console.log(x.data[window.annotationObject.type]);
+              var action;
+              if (selection == "1"){
+                action = "keep"
+              } else if (selection == "2"){
+                action = "reconsider"
+              } else if (selection == "3"){
+                action = "drop"
+              }
               x.data[window.annotationObject.type + "_data"].annotation[window.annotationObject.index] = result;
+              x.data[window.annotationObject.type + "_data"].action[window.annotationObject.index] = action;
               if (typeof Shiny != "undefined") {
                 Shiny.onInputChange("annotation", window.annotation);
                 Shiny.onInputChange('annotation_added', window.noAnnotations);
@@ -261,17 +269,31 @@ HTMLWidgets.widget({
           // }
           // if (event.keyCode === 32){
             window.noAnnotations ++;
+            var checked = [];
+            var action = x.data[objectMatched.type].action[window.objectMatched.index];
+            console.log(action);
+            if (action == null){
+              checked = ["checked ", "", ""];
+            } else if (action == "keep"){
+              checked = ["checked ", "", ""];
+            } else if (action == "reconsider"){
+              checked = ["", "checked ", ""];
+            } else if (action == "drop"){
+              checked = ["", "", "checked "];
+            }
             if (window.objectMatched.type == "vertex_data"){
               window.annotationObject = {
                 "type":"vertex",
                 "name": x.data.vertex_data.name[window.objectMatched.index],
-                "index": window.objectMatched.index
+                "index": window.objectMatched.index,
+                "checked": checked
               };
             } else if (window.objectMatched.type == "edge_data"){
               window.annotationObject = {
                 "type":"edge",
                 "name": x.data.edge_data.names[window.objectMatched.index],
-                "index": window.objectMatched.index
+                "index": window.objectMatched.index,
+                "checked": checked
               };
             };
             getUserAnnotation()
@@ -310,6 +332,9 @@ HTMLWidgets.widget({
                     if (x.data.edge_data.annotation[j] != null){
                       edgeInfo = edgeInfo + '<br/>annotation: ' + x.data.edge_data.annotation[j];
                     };
+                    if (x.data.edge_data.action[j] != null){
+                      edgeInfo = edgeInfo + '<br/>action: ' + x.data.edge_data.action[j];
+                    };
 
                     info.innerHTML = edgeInfo;
                     window.objectMatched = {type: "edge_data", index: j};
@@ -325,6 +350,10 @@ HTMLWidgets.widget({
                     if (x.data.vertex_data.annotation[j] != null){
                       vertexInfo = vertexInfo + '<br/>annotation: ' + x.data.vertex_data.annotation[j];
                     };
+                    if (x.data.vertex_data.action[j] != null){
+                      vertexInfo = vertexInfo + '<br/>action: ' + x.data.vertex_data.action[j];
+                    };
+
                     info.innerHTML = vertexInfo;
                     window.objectMatched = {type: "vertex_data", index: j};
 
