@@ -1,8 +1,8 @@
 Package: gradget
 Type: Package
 Title: gradgets
-Version: 0.2.5.9002
-Date: 2018-11-12
+Version: 0.2.6
+Date: 2018-11-19
 Author: Andreas Blaette
 Maintainer: Andreas Blaette <andreas.blaette@uni-due.de>
 Depends:
