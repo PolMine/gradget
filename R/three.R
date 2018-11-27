@@ -47,7 +47,9 @@
 #'   igraph_add_communities() %>%
 #'   rescale(-250, 250)
 #' 
-#' igraph_as_gradget_data(G) %>% three(raycaster = TRUE)
+#' G <- igraph_add_kwic(G, subcorpus = merkel2008)
+#' 
+#' igraph_as_gradget_data(G) %>% three(raycaster = TRUE) -> Y
 three <- function(
   data, bgColor = "0x888888", raycaster = TRUE, anaglyph = FALSE, knitr = FALSE,
   width = NULL, height = NULL, elementId = "three"
@@ -60,8 +62,21 @@ three <- function(
     settings = list(bgColor = bgColor, raycaster = raycaster, anaglyph = anaglyph, knitr = knitr, width = width, height = height)
   )
   
+  bootbox <- htmltools::htmlDependency(
+    name = "bootbox",
+    version = "4.4.0",
+    src = system.file(package = "gradget", "www", "bootbox", "js"),
+    script = "bootbox.min.js"
+  )
+
+  deps <- list(
+    rmarkdown::html_dependency_jquery(),
+    rmarkdown::html_dependency_bootstrap("default"),
+    bootbox
+  )
+  
   # create the widget
-  wdg <- htmlwidgets::createWidget(
+  htmlwidgets::createWidget(
     name = "three", x = x,
     # íf elementId is used we get warning: Ignoring explicitly provided widget ID "three"; Shiny doesn't use them
     elementId = elementId, 
@@ -72,9 +87,9 @@ three <- function(
       browser.padding = 0, browser.fill = TRUE,
       knitr.defaultHeight = 800, knitr.defaultWidth = 600
     ),
-    package = "gradget"
-    )
-  wdg
+    package = "gradget",
+    dependencies = deps
+  )
 }
 
 

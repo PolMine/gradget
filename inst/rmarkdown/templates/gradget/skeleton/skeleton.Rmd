@@ -1,20 +1,19 @@
 ---
-title: "Die Nachbarschaft zählt"
-subtitle: 'Die Analyse von Kookkurrenzen mit polmineR'
+title: "Gradget-Folien"
+subtitle: 'Including a gradget into slides'
 author: "Andreas Blaette"
 date: "Stand: 12. November 2018"
 output:
-  revealjs::revealjs_presentation:
-  css: foo.css
-  reveal_options:
-    controls: false
-    progress: true
+  ioslides_presentation:
+    widescreen: yes
+editor_options: 
+  chunk_output_type: console
 ---
 
 
 ```{r, eval = TRUE, message = FALSE, echo = FALSE}
 library(polmineR)
-library(gradgets)
+library(gradget)
 library(magrittr)
 library(pbapply)
 library(igraph)
@@ -28,22 +27,53 @@ if (runcode) use ("GermaParl")
 
 ## 2D
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, eval = TRUE, warning = FALSE}
 G <- merkel2008
 igraph_as_svg(merkel2008) %>% plot()
 ```
 
 
-## {.gradget}
+## Tab {.smaller}
 
-```{r, eval = TRUE, echo = FALSE}
-merkel2008 %>%
+```{r, render = knit_print, echo = FALSE, message = FALSE, warning = FALSE}
+use("GermaParl")
+bt2008 <- partition("GERMAPARL", year = 2008)
+kwic(bt2008, query = "Integration")
+```
+
+
+
+## Merkel 2008 {.flexbox .vcenter}
+
+```{r, eval = TRUE, echo = FALSE, message = FALSE}
+merkel2008 <- partition(
+  "GERMAPARL",
+  speaker = "Angela Merkel", year = 2008, interjection = FALSE,
+  p_attribute = "word"
+)
+
+terms_to_drop <- p_attributes(merkel2008, p_attribute = "word") %>%
+  noise(verbose = FALSE) %>%
+  unlist() %>%
+  unname() %>%
+  c(polmineR::punctuation)
+
+G <- Cooccurrences(merkel2008, "word", 5L, 5L, terms_to_drop) %>%
+  ll() %>%
+  decode() %>%
+  subset(rank_ll <= 250) %>%
+  kwic() %>%
+  as_igraph() %>%
   igraph_add_coordinates(layout = "kamada.kawai", dim = 3) %>%
   igraph_add_communities() %>%
-  rescale(-250, 250) %>%
-  igraph_as_gradget_data() %>%
-  # three(knitr = TRUE)
-  three(knitr = TRUE, width = 1000, height = 600, anaglyph = TRUE)
+  rescale(-250, 250)
+
+# G <- igraph_add_kwic(G, subcorpus = merkel2008)
+
+GR <- gradget::igraph_as_gradget_data(G)
+
+Y <- three(GR, knitr = TRUE, raycaster = TRUE)
+Y
 ```
 
 
