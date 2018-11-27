@@ -223,7 +223,7 @@ HTMLWidgets.widget({
            var anno = bootbox.prompt({
              title: 'Annotate Edge/Node<hr style="padding: 0em;"/>\
               count: ' + x.data[window.objectMatched.type].count[window.objectMatched.index] + '<hr/>\
-              <div style="height: 200px; font-weight: normal;font-size: smaller;overflow-y: scroll;">' + x.data[window.objectMatched.type].kwic[window.objectMatched.index] + '</div>\
+              <div style="height: 200px; font-weight: normal;font-size: smaller;overflow-y: scroll;">' + x.data[window.objectMatched.type].info[window.objectMatched.index] + '</div>\
               <hr/>\
               <div id="selection" class="btn-group" data-toggle="buttons">\
                 <label class="radio-inline"><input type="radio" name="optradio" ' + window.annotationObject.checked[0] + 'value="1">keep</label>\

@@ -6,7 +6,7 @@ Date: 2018-11-19
 Author: Andreas Blaette
 Maintainer: Andreas Blaette <andreas.blaette@uni-due.de>
 Depends:
-    polmineR (>= 0.7.10.9006),
+    polmineR (>= 0.7.10.9008),
     RColorBrewer,
     htmlwidgets
 Imports:

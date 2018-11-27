@@ -29,7 +29,7 @@ igraph_as_gradget_data <- function(
     count = V(graph)$count, name = V(graph)$name,
     nodeSize = rep(nodeSize, times = length(V(graph))), color = if (is.null(V(graph)$color)) nodeColor  else V(graph)$color,
     fontSize = fontSize, fontColor = rep(fontColor, times = length(V(graph))),
-    kwic = unlist(V(graph)$kwic)
+    info = unlist(V(graph)$info)
   )
   
   edgelistId <- as_edgelist(graph, names = FALSE)
@@ -55,7 +55,7 @@ igraph_as_gradget_data <- function(
     count = unlist(lapply(get.edge.attribute(graph, "ab_count"), mean)),
     color = edgeColor,
     lwd = edgeWidth,
-    kwic = unlist(E(graph)$kwic)
+    info = unlist(E(graph)$info)
   )
   
   list(
@@ -437,7 +437,7 @@ igraph_add_kwic <- function(graph, subcorpus, left = 5L, right = 5L, verbose = T
     el <- paste(vec, collapse = "<br/>")
     unlist(el)
   }
-  V(graph)$kwic <- pblapply(context_list, .get_kwic_for_nodes)
+  V(graph)$info <- pblapply(context_list, .get_kwic_for_nodes)
   
   if (progress) message("... creating edge data")
   enc <- registry_get_encoding("GERMAPARL")
@@ -460,7 +460,7 @@ igraph_add_kwic <- function(graph, subcorpus, left = 5L, right = 5L, verbose = T
       }
     }
   )
-  E(graph)$kwic <- unlist(edge_data)
+  E(graph)$info <- unlist(edge_data)
   
   graph
 }
