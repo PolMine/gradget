@@ -24,23 +24,24 @@ setOldClass("json")
 #' @importFrom pbapply pblapply
 #' @importFrom polmineR kwic
 #' @examples
+#' library(gradget)
 #' library(magrittr)
 #' library(polmineR)
 #' library(pbapply)
 #' library(igraph)
 #' use("GermaParl")
 #' 
-#' G <- merkel2008 %>%
-#'   igraph_add_coordinates(layout = "kamada.kawai", dim = 3) %>%
-#'   igraph_add_communities() %>% 
-#'   rescale(-250, 250)
-#' 
 #' am2008 <- partition(
 #'   "GERMAPARL",
 #'   speaker = "Angela Merkel", year = 2008, interjection = FALSE,
 #'   p_attribute = "word"
 #' )
-#' G <- igraph_add_kwic(G, subcorpus = am2008)
+#' 
+#' G <- gradget::merkel2008 %>%
+#'   igraph_add_coordinates(layout = "kamada.kawai", dim = 3) %>%
+#'   igraph_add_communities() %>% 
+#'   rescale(-250, 250) %>%
+#'   igraph_add_kwic(subcorpus = am2008)
 #' 
 #' if (interactive()) G <- granny(G)
 #' @export granny

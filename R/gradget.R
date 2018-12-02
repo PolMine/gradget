@@ -78,7 +78,7 @@ gradget <- function(
   
   # create the widget
   htmlwidgets::createWidget(
-    name = "three", x = x,
+    name = "gradget", x = x,
     # íf elementId is used we get warning: Ignoring explicitly provided widget ID "gradget"; Shiny doesn't use them
     elementId = elementId, 
     width = width, height = height,
