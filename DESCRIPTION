@@ -1,14 +1,12 @@
 Package: gradget
 Type: Package
 Title: gradget
-Version: 0.2.6
-Date: 2018-11-27
+Version: 0.2.6.9001
+Date: 2018-12-02
 Author: Andreas Blaette
 Maintainer: Andreas Blaette <andreas.blaette@uni-due.de>
 Depends:
     polmineR (>= 0.7.10.9008),
-    RColorBrewer,
-    htmlwidgets
 Imports:
     igraph,
     xml2,
@@ -19,7 +17,10 @@ Imports:
     plotly,
     svgPanZoom,
     miniUI,
-    shiny
+    shiny,
+    rmarkdown,
+    RColorBrewer,
+    htmlwidgets
 Suggests:
     knitr,
     DT,
@@ -33,6 +34,6 @@ License: GPL-3
 Encoding: UTF-8
 Collate:
     'igraph.R'
-    'three.R'
     'gradget.R'
+    'granny.R'
 RoxygenNote: 6.0.1

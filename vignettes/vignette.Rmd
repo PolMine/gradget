@@ -44,7 +44,7 @@ G <- merkel2008 %>%
 ```
 
 ```{r}
-igraph_as_gradget_data(G) %>% three(knitr = TRUE, width = 700, height = 500)
+igraph_as_gradget_data(G) %>% gradget(knitr = TRUE, width = 700, height = 500)
 ```
 
 

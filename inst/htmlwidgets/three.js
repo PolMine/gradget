@@ -1,6 +1,6 @@
 HTMLWidgets.widget({
 
-  name: "three",
+  name: "gradget",
   
   type: "output",
   
@@ -24,9 +24,9 @@ HTMLWidgets.widget({
         // this is a somewhat dirty hack because for browser output
         // a default height of 400px is passed; here, we fill the whole
         // space. May conflict with knitr output.
-        document.getElementById("three").style.height = "100%";
+        document.getElementById("gradget").style.height = "100%";
         if (x.settings.knitr == false){
-          window.height = document.getElementById("three").offsetHeight;
+          window.height = document.getElementById("gradget").offsetHeight;
         } else {
           if ( x.settings.width != null){
             window.width = x.settings.width;

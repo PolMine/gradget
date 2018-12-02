@@ -1,107 +1,117 @@
-setOldClass("igraph")
-setOldClass("json")
-
-
-#' Cooccurrence (i)graph of Merkel 2008.
+#' Generate and manage 3d graph.
 #' 
-#' @docType data
-#' @encoding UTF-8 
-#' @format An igraph object
-"merkel2008"
-
-
-
-
-#' Graph Annotation with Shiny.
+#' Generate 3d graph with three.js
 #' 
-#' A shiny gadget for graph annotation with shiny, or granny in short. 
-#' 
-#' @param graph An \code{igraph} object that is enhanced for visualisation with
-#'   the gradget htmlwidget (x, y, and z coordinates, if applicable; additional
-#'   edge and node data).
-#' @importFrom miniUI miniPage miniTitleBar miniTabstripPanel miniTabPanel gadgetTitleBar miniContentPanel
-#' @importFrom shiny runGadget observeEvent stopApp browserViewer icon reactiveValues
-#' @importFrom pbapply pblapply
-#' @importFrom polmineR kwic
+#' @param data Input data.
+#' @param bgColor Background color, a hex value (defaults to "0x888888").
+#' @param knitr A logical value, whether htmlwidget is embedded in
+#'   knitr/Rmarkdown document. If TRUE, corners will be somewhat rounded, and a
+#'   sizing mechanism will ensure that the chunk option is processed
+#'   appropriately (best practice: fig.width = 9.5).
+#' @param elementId Passed into \code{htmlwidgets::createWidget}, required to be
+#'   "gradget" (default) if the widget shall be used directly, optionally NULL, if
+#'   the widget shall be included in a shiny app.
+#' @param raycaster ...
+#' @param anaglyph ... 
+#' @param width ...
+#' @param height ...
+#' @name gradget
+#' @rdname gradget
+#' @export gradget
+#' @importFrom igraph V E get.edge.attribute
+#' @importFrom htmlwidgets sizingPolicy
+#' @importFrom rmarkdown html_dependency_jquery html_dependency_bootstrap
 #' @examples
-#' library(magrittr)
+#' library(gradget)
 #' library(polmineR)
-#' library(pbapply)
-#' library(igraph)
+#' library(magrittr)
 #' use("GermaParl")
 #' 
-#' G <- merkel2008 %>%
-#'   igraph_add_coordinates(layout = "kamada.kawai", dim = 3) %>%
-#'   igraph_add_communities() %>% 
-#'   rescale(-250, 250)
-#' 
-#' am2008 <- partition(
+#' merkel2008 <- partition(
 #'   "GERMAPARL",
 #'   speaker = "Angela Merkel", year = 2008, interjection = FALSE,
 #'   p_attribute = "word"
 #' )
-#' G <- igraph_add_kwic(G, subcorpus = am2008)
-#' if (interactive()) G <- gradget(G)
-#' @export gradget
-gradget <- function(graph) { 
+#' 
+#' terms_to_drop <- p_attributes(merkel2008, p_attribute = "word") %>%
+#'   noise(verbose = FALSE) %>%
+#'   unlist() %>%
+#'   unname() %>%
+#'   c(polmineR::punctuation)
+#' 
+#' G <- Cooccurrences(merkel2008, "word", 5L, 5L, terms_to_drop) %>%
+#'   ll() %>%
+#'   decode() %>%
+#'   subset(rank_ll <= 250) %>%
+#'   as_igraph() %>%
+#'   igraph_add_coordinates(layout = "kamada.kawai", dim = 3) %>%
+#'   igraph_add_communities() %>%
+#'   rescale(-250, 250)
+#' 
+#' G <- igraph_add_kwic(G, subcorpus = merkel2008)
+#' D <- igraph_as_gradget_data(G)
+#' W <- gradget(D, raycaster = TRUE)
+gradget <- function(
+  data, bgColor = "0x888888", raycaster = TRUE, anaglyph = FALSE, knitr = FALSE,
+  width = NULL, height = NULL, elementId = "gradget"
+  ){
   
-  values <- reactiveValues()
-  values[["graph"]] <- graph
-  
-  ui <- miniPage(
-    
-    gadgetTitleBar(title = "Annotation Gadget"),
-    miniTabstripPanel(
-      miniTabPanel(
-        "Graph", icon = icon("area-chart"),
-        miniContentPanel( threeOutput("three"), padding = 0)
-      ),
-      miniTabPanel(
-        "Nodes", icon = icon("genderless"),
-        miniContentPanel( DT::dataTableOutput('annotations_table') )
-      ),
-      miniTabPanel(
-        "Edges", icon = icon("location-arrow"),
-        miniContentPanel( DT::dataTableOutput('annotations_table2') )
-      ),
-      miniTabPanel(
-        "Data", icon = icon("table"),
-        miniContentPanel( DT::dataTableOutput('graph_data') )
-      )
-    )
+  # if (is.null(V(G)$z)) warning("coordinates for threedimensional display are not available")
+
+  x <- list(
+    data = data,
+    settings = list(bgColor = bgColor, raycaster = raycaster, anaglyph = anaglyph, knitr = knitr, width = width, height = height)
   )
   
-  server <- function(input, output, session) {
-    
-    output$three <- renderThree( three(igraph_as_gradget_data(graph), raycaster = TRUE, elementId = NULL) )
-    
-    output$graph_data <- DT::renderDataTable(
-      DT::datatable(igraph::as_edgelist(graph), rownames = FALSE)
-    )
-    
-    observeEvent(
-      input$annotation_added,
-      {
-        action_types <- c("1" = "keep", "2" = "reconsider", "3" = "drop")
-        if (input$annotation$type == "vertex"){
-          V(values$graph)[[input$annotation$name]]$action <- action_types[[input$annotation$selection]]
-          V(values$graph)[[input$annotation$name]]$annotation <- input$annotation$annotation
-        } else if (input$annotation$type == "edge"){
-          edge_no <- which(attr(E(graph), "vnames") == input$annotation$name)
-          E(values$graph)[[edge_no]]$action <- action_types[[input$annotation$selection]]
-          E(values$graph)[[edge_no]]$annotation <- input$annotation$annotation
-        }
-        
-        # output$annotations_table <- DT::renderDataTable(DT::datatable(df, selection = "single", rownames = FALSE))
-      }
-    )
-    
-    observeEvent(
-      input$done,
-      stopApp(values$graph)
-    )
-    
-  }
+  bootbox <- htmltools::htmlDependency(
+    name = "bootbox",
+    version = "4.4.0",
+    src = system.file(package = "gradget", "www", "bootbox", "js"),
+    script = "bootbox.min.js"
+  )
+
+  deps <- list(
+    rmarkdown::html_dependency_jquery(),
+    rmarkdown::html_dependency_bootstrap("default"),
+    bootbox
+  )
   
-  runGadget(ui, server, viewer = browserViewer())
+  # create the widget
+  htmlwidgets::createWidget(
+    name = "three", x = x,
+    # íf elementId is used we get warning: Ignoring explicitly provided widget ID "gradget"; Shiny doesn't use them
+    elementId = elementId, 
+    width = width, height = height,
+    sizingPolicy = sizingPolicy(
+      padding = 0,
+      viewer.padding = 0,
+      browser.padding = 0, browser.fill = TRUE,
+      knitr.defaultHeight = 800, knitr.defaultWidth = 600
+    ),
+    package = "gradget",
+    dependencies = deps
+  )
 }
+
+
+#' @export gradgetOutput
+#' @importFrom htmlwidgets shinyWidgetOutput
+#' @rdname gradget
+gradgetOutput <- function(outputId, width = "100%", height = "400px") {
+  shinyWidgetOutput(outputId, "gradget", width, height, package = "gradget")
+}
+
+
+#' @param outputId output variable to read from
+#' @param expr An expression that generates an HTML widget
+#' @param env The environment in which to evaluate expr.
+#' @param quoted Is \code{expr} a quoted expression (with quote())? This is useful if
+#'   you want to save an expression in a variable.
+#' @export renderGradget
+#' @importFrom htmlwidgets shinyRenderWidget
+#' @rdname gradget
+renderGradget <- function(expr, env = parent.frame(), quoted = FALSE) {
+  if (!quoted) { expr <- substitute(expr) } # force quoted
+  shinyRenderWidget(expr, gradgetOutput, env, quoted = TRUE)
+}
+

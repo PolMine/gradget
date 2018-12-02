@@ -305,7 +305,7 @@ as.networkD3 <- function(x){
 #' S <- igraph_as_svg(G)
 #' w <- svgPanZoom::svgPanZoom(S)
 #' 
-#' w <- appendContent(
+#' w <- htmlwidgets::appendContent(
 #'   w,
 #'   shiny::includeScript(path = system.file(package = "gradget", "js", "svg_js_extensions.js"))
 #'   )
