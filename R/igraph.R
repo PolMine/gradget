@@ -440,7 +440,7 @@ igraph_add_kwic <- function(graph, subcorpus, left = 5L, right = 5L, verbose = T
   V(graph)$info <- pblapply(context_list, .get_kwic_for_nodes)
   
   if (progress) message("... creating edge data")
-  enc <- registry_get_encoding("GERMAPARL")
+  enc <- registry_get_encoding(subcorpus@corpus)
   edge_data <- pblapply(
     strsplit(attr(E(graph), "vnames"), "\\|"),
     function(edge_names){
